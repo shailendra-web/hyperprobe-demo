@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hyperprobe — VS Code Plugin Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monospace; font-size:13px; color:#d4d4d4; overflow:hidden; }
+
+/* ── VS CODE CHROME ── */
+.vscode { display:flex; flex-direction:column; height:100vh; }
+
+/* Title bar */
+.titlebar { height:30px; background:#3c3c3c; display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; border-bottom:1px solid #252526; }
+.titlebar-dots { display:flex; gap:6px; }
+.titlebar-dot { width:12px; height:12px; border-radius:50%; }
+.titlebar-title { font-size:12px; color:#cccccc; letter-spacing:0.3px; }
+.titlebar-controls { display:flex; gap:16px; font-size:11px; color:#8b8b8b; }
+
+/* Menu bar */
+.menubar { height:26px; background:#3c3c3c; display:flex; align-items:center; padding:0 8px; gap:2px; flex-shrink:0; }
+.menu-item { padding:2px 8px; font-size:12px; color:#cccccc; cursor:pointer; border-radius:3px; }
+.menu-item:hover { background:#505050; }
+
+/* Main layout */
+.main { display:flex; flex:1; overflow:hidden; }
+
+/* Activity bar */
+.activitybar { width:48px; background:#333333; display:flex; flex-direction:column; align-items:center; padding-top:8px; gap:4px; flex-shrink:0; border-right:1px solid #252526; }
+.activity-icon { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px; cursor:pointer; color:#858585; font-size:18px; position:relative; }
+.activity-icon:hover { color:#d4d4d4; }
+.activity-icon.active { color:#d4d4d4; }
+.activity-icon.active::before { content:''; position:absolute; left:-8px; top:50%; transform:translateY(-50%); width:2px; height:24px; background:#d4d4d4; border-radius:1px; }
+.activity-badge { position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#c0392b; }
+
+/* Sidebar */
+.sidebar { width:240px; background:#252526; border-right:1px solid #1e1e1e; display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; }
+.sidebar-header { padding:10px 12px 6px; font-size:11px; font-weight:600; color:#bbb; letter-spacing:1.5px; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-header span { font-size:14px; color:#858585; cursor:pointer; }
+.file-tree { flex:1; overflow-y:auto; }
+.file-item { display:flex; align-items:center; gap:6px; padding:3px 12px 3px 20px; font-size:13px; color:#cccccc; cursor:pointer; white-space:nowrap; }
+.file-item:hover { background:#2a2d2e; }
+.file-item.active { background:#094771; color:#fff; }
+.file-item.folder { color:#dcb67a; }
+.file-icon { font-size:14px; flex-shrink:0; }
+
+/* Editor area */
+.editor-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* Tab bar */
+.tabbar { height:35px; background:#2d2d2d; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #252526; overflow:hidden; }
+.tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:8px; font-size:13px; color:#969696; cursor:pointer; border-right:1px solid #252526; white-space:nowrap; position:relative; flex-shrink:0; }
+.tab.active { background:#1e1e1e; color:#d4d4d4; border-top:1px solid #c0392b; }
+.tab-close { font-size:14px; color:#969696; line-height:1; }
+.tab-close:hover { color:#d4d4d4; }
+
+/* Editor + panel split */
+.editor-panel-split { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* Code editor */
+.editor { flex:0 0 55%; background:#1e1e1e; overflow:hidden; display:flex; flex-direction:column; position:relative; }
+.code-scroll { flex:1; overflow:hidden; display:flex; flex-direction:column; padding:14px 0; }
+.code-line { display:flex; align-items:center; white-space:pre; line-height:1.7; font-size:13px; position:relative; }
+.code-line.bp-line { background:rgba(192,57,43,0.18); }
+.code-line.bp-line:hover { background:rgba(192,57,43,0.22); }
+.code-line:not(.bp-line):hover .line-gutter { opacity:1; }
+/* Gutter — leftmost column, fixed width, shows bp dot only on bp line */
+.line-gutter { width:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; height:100%; }
+.bp-dot { width:11px; height:11px; border-radius:50%; background:#c0392b; flex-shrink:0; box-shadow:0 0 6px rgba(192,57,43,0.8); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 4px rgba(192,57,43,0.6)} 50%{box-shadow:0 0 10px rgba(192,57,43,1)} }
+/* Line number */
+.line-num { width:36px; flex-shrink:0; text-align:right; padding-right:14px; color:#858585; font-size:13px; user-select:none; }
+.code-line.bp-line .line-num { color:#d4d4d4; }
+/* Code text */
+.line-code { flex:1; padding-right:20px; }
+
+/* Syntax */
+.kw { color:#569cd6; }
+.fn { color:#dcdcaa; }
+.ty { color:#4ec9b0; }
+.st { color:#ce9178; }
+.cm { color:#6a9955; font-style:italic; }
+.nu { color:#b5cea8; }
+.op { color:#d4d4d4; }
+.va { color:#9cdcfe; }
+.prop { color:#9cdcfe; }
+
+/* Breakpoint hover tooltip */
+.bp-tooltip { position:absolute; left:60px; top:-2px; background:#2d2d30; border:1px solid #454545; padding:6px 10px; font-size:11px; color:#d4d4d4; z-index:100; white-space:nowrap; display:none; pointer-events:none; }
+.code-line:hover .bp-tooltip { display:block; }
+
+/* Inline annotation */
+.inline-ghost { color:#6a9955; font-size:12px; font-style:italic; margin-left:12px; opacity:0.85; }
+
+/* ── BOTTOM PANEL ── */
+.bottom-panel { flex:1; background:#1e1e1e; border-top:2px solid #c0392b; display:flex; flex-direction:column; overflow:hidden; }
+.panel-tabs { height:35px; background:#252526; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #1e1e1e; }
+.panel-tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:6px; font-size:12px; color:#969696; cursor:pointer; border-right:1px solid #1e1e1e; white-space:nowrap; }
+.panel-tab.active { background:#1e1e1e; color:#d4d4d4; border-top:2px solid #c0392b; }
+.panel-tab-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; min-width:16px; text-align:center; }
+
+/* Panel content */
+.panel-content { flex:1; display:flex; overflow:hidden; }
+
+/* Left: snapshot feed */
+.snapshot-feed { width:280px; border-right:1px solid #2d2d2d; display:flex; flex-direction:column; flex-shrink:0; }
+.feed-header { padding:8px 12px; font-size:11px; color:#858585; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #2d2d2d; display:flex; align-items:center; justify-content:space-between; }
+.feed-header-actions { display:flex; gap:8px; }
+.feed-action { font-size:11px; color:#569cd6; cursor:pointer; }
+.feed-action:hover { color:#9cdcfe; }
+.feed-list { flex:1; overflow-y:auto; }
+.feed-item { padding:10px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; transition:background 0.1s; }
+.feed-item:hover { background:#2a2d2e; }
+.feed-item.active { background:#094771; border-left:2px solid #c0392b; }
+.feed-item-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
+.feed-item-line { font-size:12px; color:#4ec9b0; font-weight:600; }
+.feed-item-time { font-size:10px; color:#858585; }
+.feed-item-fn { font-size:11px; color:#dcdcaa; margin-bottom:2px; }
+.feed-item-summary { font-size:11px; color:#969696; }
+.feed-item-summary .bad { color:#f48771; font-weight:600; }
+.feed-empty { padding:24px 12px; text-align:center; color:#555; font-size:12px; line-height:1.8; }
+.feed-waiting { display:flex; flex-direction:column; align-items:center; gap:8px; padding:32px 12px; color:#555; font-size:11px; text-align:center; }
+.waiting-spinner { width:20px; height:20px; border:2px solid #333; border-top:2px solid #c0392b; border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Right: snapshot detail */
+.snapshot-detail { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.detail-header { padding:8px 14px; border-bottom:1px solid #2d2d2d; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.detail-title { font-size:12px; color:#d4d4d4; display:flex; align-items:center; gap:8px; }
+.detail-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:2px 6px; border-radius:2px; letter-spacing:0.5px; }
+.detail-badge.ok { background:#166534; }
+.detail-meta { font-size:10px; color:#858585; display:flex; gap:12px; }
+.detail-body { flex:1; overflow-y:auto; display:flex; }
+
+/* ── DEBUGGER VARIABLE TREE ── */
+.vars-pane { flex:1; border-right:1px solid #2d2d2d; overflow-y:auto; }
+.pane-title { padding:5px 8px; font-size:10px; color:#858585; letter-spacing:1.2px; text-transform:uppercase; background:#252526; border-bottom:1px solid #2d2d2d; position:sticky; top:0; z-index:1; }
+.dbg-section { border-bottom:1px solid #2a2a2a; }
+.dbg-section-hdr { padding:4px 8px; font-size:11px; font-weight:700; color:#bbb; letter-spacing:0.5px; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; gap:6px; background:#252526; user-select:none; }
+.dbg-section-hdr:hover { background:#2a2d2e; }
+.dbg-section-hdr.open { color:#d4d4d4; }
+.dbg-arrow { font-size:9px; color:#858585; width:10px; flex-shrink:0; }
+.dbg-section-body { }
+.dbg-row { display:flex; align-items:baseline; padding:2px 8px 2px 24px; gap:0; cursor:default; min-height:20px; }
+.dbg-row:hover { background:#2a2d2e; }
+.dbg-row.bad { background:rgba(192,57,43,0.1); }
+.dbg-row.bad:hover { background:rgba(192,57,43,0.16); }
+.dbg-row.warn { background:rgba(215,153,33,0.07); }
+.dbg-row.expandable { cursor:pointer; }
+.dbg-row.child { padding-left:44px; }
+.dbg-children { }
+.dbg-expand { font-size:9px; color:#858585; width:14px; flex-shrink:0; margin-right:2px; }
+.dbg-name { color:#9cdcfe; font-size:12px; min-width:110px; flex-shrink:0; }
+.dbg-watch-expr { color:#dcdcaa; font-style:italic; }
+.dbg-eq { color:#858585; margin:0 6px; font-size:12px; flex-shrink:0; }
+.dbg-val { font-size:12px; }
+.dbg-val.null { color:#f48771; font-weight:700; }
+.dbg-val.str { color:#ce9178; }
+.dbg-val.num { color:#b5cea8; }
+.dbg-val.bool { color:#569cd6; }
+.dbg-val.obj { color:#858585; font-style:italic; }
+.dbg-val.warn { color:#d97706; }
+.dbg-add-watch { padding:3px 8px 3px 38px; font-size:11px; color:#555; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.dbg-add-watch:hover { color:#858585; }
+.dbg-add-icon { color:#569cd6; font-size:14px; line-height:1; }
+
+/* Call stack pane */
+.stack-pane { width:240px; overflow-y:auto; flex-shrink:0; }
+.stack-frame { padding:5px 14px; border-bottom:1px solid #2a2a2a; cursor:pointer; }
+.stack-frame:hover { background:#2a2d2e; }
+.stack-frame.active { background:#094771; }
+.stack-fn { font-size:12px; color:#dcdcaa; }
+.stack-loc { font-size:10px; color:#858585; margin-top:1px; }
+.stack-loc span { color:#569cd6; }
+
+/* Status bar */
+.statusbar { height:22px; background:#c0392b; display:flex; align-items:center; justify-content:space-between; padding:0 10px; flex-shrink:0; }
+.status-left { display:flex; gap:12px; align-items:center; }
+.status-item { font-size:11px; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px; cursor:pointer; }
+.status-item:hover { background:rgba(255,255,255,0.1); padding:0 4px; border-radius:2px; }
+.status-dot { width:6px; height:6px; border-radius:50%; background:#fff; }
+.status-right { display:flex; gap:12px; align-items:center; }
+
+/* ── BREAKPOINT FORM OVERLAY ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.overlay.visible { opacity:1; pointer-events:all; }
+.bp-form { background:#252526; border:1px solid #454545; width:440px; border-radius:4px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+.bp-form-header { padding:12px 16px; background:#2d2d30; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; justify-content:space-between; }
+.bp-form-title { font-size:13px; color:#d4d4d4; font-weight:600; display:flex; align-items:center; gap:8px; }
+.bp-form-close { color:#858585; cursor:pointer; font-size:16px; }
+.bp-form-close:hover { color:#d4d4d4; }
+.bp-form-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+.bp-form-row { display:flex; flex-direction:column; gap:5px; }
+.bp-form-label { font-size:11px; color:#858585; letter-spacing:0.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+.bp-form-label-badge { font-size:9px; background:#094771; color:#9cdcfe; padding:1px 5px; border-radius:2px; text-transform:none; letter-spacing:0; }
+.bp-form-input { background:#3c3c3c; border:1px solid #555; color:#d4d4d4; padding:7px 10px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:2px; outline:none; transition:border-color 0.15s; }
+.bp-form-input:focus { border-color:#569cd6; }
+.bp-form-input::placeholder { color:#555; }
+.bp-form-row-inline { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.bp-form-hint { font-size:10px; color:#6a9955; font-style:italic; }
+.bp-form-footer { padding:12px 16px; background:#2d2d30; border-top:1px solid #3c3c3c; display:flex; gap:8px; justify-content:flex-end; }
+.bp-btn { padding:7px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border:none; cursor:pointer; border-radius:2px; font-weight:600; }
+.bp-btn-primary { background:#c0392b; color:white; }
+.bp-btn-primary:hover { background:#a93226; }
+.bp-btn-secondary { background:#3c3c3c; color:#d4d4d4; border:1px solid #555; }
+.bp-btn-secondary:hover { background:#4a4a4a; }
+
+/* ── CONTEXT MENU ── */
+.context-menu { position:fixed; background:#252526; border:1px solid #454545; min-width:220px; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,0.5); display:none; }
+.context-menu.visible { display:block; }
+.ctx-item { padding:7px 14px; font-size:12px; color:#d4d4d4; cursor:pointer; display:flex; align-items:center; gap:10px; }
+.ctx-item:hover { background:#094771; }
+.ctx-item.separator { border-top:1px solid #3c3c3c; margin-top:2px; padding-top:6px; }
+.ctx-item-icon { font-size:13px; width:16px; text-align:center; }
+.ctx-item-key { margin-left:auto; font-size:10px; color:#858585; }
+.ctx-hp { color:#c0392b; font-weight:700; }
+
+/* ── STEP INDICATOR ── */
+.step-indicator { position:fixed; bottom:36px; right:20px; display:flex; gap:6px; z-index:150; }
+.step-btn { background:#252526; border:1px solid #454545; color:#d4d4d4; padding:6px 14px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:2px; display:flex; align-items:center; gap:6px; transition:all 0.15s; }
+.step-btn:hover { background:#2d2d30; border-color:#569cd6; }
+.step-btn.primary { background:#c0392b; border-color:#c0392b; color:white; }
+.step-btn.primary:hover { background:#a93226; }
+.step-dots { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:150; }
+.step-dot { width:7px; height:7px; border-radius:50%; background:#3c3c3c; border:1px solid #555; cursor:pointer; transition:all 0.2s; }
+.step-dot.active { background:#c0392b; border-color:#c0392b; width:20px; border-radius:4px; }
+.step-label { position:fixed; bottom:58px; left:50%; transform:translateX(-50%); background:#252526; border:1px solid #454545; padding:4px 12px; font-size:11px; color:#858585; white-space:nowrap; border-radius:2px; z-index:150; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:#1e1e1e; }
+::-webkit-scrollbar-thumb { background:#424242; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- CONTEXT MENU -->
+<div class="context-menu" id="ctxMenu">
+  <div class="ctx-item"><span class="ctx-item-icon">✂</span>Cut<span class="ctx-item-key">⌘X</span></div>
+  <div class="ctx-item"><span class="ctx-item-icon">⎘</span>Copy<span class="ctx-item-key">⌘C</span></div>
+  <div class="ctx-item"><span class="ctx-item-icon">📋</span>Paste<span class="ctx-item-key">⌘V</span></div>
+  <div class="ctx-item separator"><span class="ctx-item-icon">🔍</span>Go to Definition<span class="ctx-item-key">F12</span></div>
+  <div class="ctx-item"><span class="ctx-item-icon ctx-hp">⬤</span><span class="ctx-hp">Add Hyperprobe Breakpoint…</span></div>
+  <div class="ctx-item"><span class="ctx-item-icon">🔖</span>Add Breakpoint<span class="ctx-item-key">F9</span></div>
+</div>
+
+<!-- BREAKPOINT FORM OVERLAY -->
+<div class="overlay" id="bpOverlay">
+  <div class="bp-form">
+    <div class="bp-form-header">
+      <div class="bp-form-title">
+        <span style="color:#c0392b;">⬤</span>
+        Add Hyperprobe Breakpoint — line 34
+      </div>
+      <span class="bp-form-close" id="bpClose">✕</span>
+    </div>
+    <div class="bp-form-body">
+      <div class="bp-form-row">
+        <div class="bp-form-label">Condition <span class="bp-form-label-badge">optional</span></div>
+        <input class="bp-form-input" id="condInput" placeholder="e.g. user.tier == 'free' && balance == null" value="user.tier == 'free'">
+        <div class="bp-form-hint">Expression evaluated at runtime. Snapshot only fires when true.</div>
+      </div>
+      <div class="bp-form-row-inline">
+        <div class="bp-form-row">
+          <div class="bp-form-label">Hit Count</div>
+          <input class="bp-form-input" placeholder="e.g. 5 (every 5th hit)" value="1">
+        </div>
+        <div class="bp-form-row">
+          <div class="bp-form-label">Rate Limit</div>
+          <input class="bp-form-input" placeholder="hits / minute" value="10 / min">
+        </div>
+      </div>
+      <div class="bp-form-row">
+        <div class="bp-form-label">TTL (expires after)</div>
+        <input class="bp-form-input" placeholder="e.g. 30m, 1h, 10 hits" value="30m">
+        <div class="bp-form-hint">Breakpoint auto-deactivates. Default: 30 minutes.</div>
+      </div>
+      <div class="bp-form-row">
+        <div class="bp-form-label">Max Depth <span class="bp-form-label-badge">optional</span></div>
+        <input class="bp-form-input" placeholder="Object capture depth (default: 3)" value="3">
+      </div>
+    </div>
+    <div class="bp-form-footer">
+      <button class="bp-btn bp-btn-secondary" id="bpCancel">Cancel</button>
+      <button class="bp-btn bp-btn-primary" id="bpActivate">Activate Breakpoint</button>
+    </div>
+  </div>
+</div>
+
+<!-- VSCODE CHROME -->
+<div class="vscode">
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="titlebar-dots">
+      <div class="titlebar-dot" style="background:#ff5f57;"></div>
+      <div class="titlebar-dot" style="background:#febc2e;"></div>
+      <div class="titlebar-dot" style="background:#28c840;"></div>
+    </div>
+    <div class="titlebar-title">PaymentService.java — payment-service [production] — Visual Studio Code</div>
+    <div class="titlebar-controls">
+      <span>─</span><span>⬜</span><span>✕</span>
+    </div>
+  </div>
+
+  <!-- Menu bar -->
+  <div class="menubar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">Selection</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Go</div>
+    <div class="menu-item">Run</div>
+    <div class="menu-item">Terminal</div>
+    <div class="menu-item" style="color:#c0392b;font-weight:600;">Hyperprobe</div>
+    <div class="menu-item">Help</div>
+  </div>
+
+  <div class="main">
+
+    <!-- Activity bar -->
+    <div class="activitybar">
+      <div class="activity-icon">📁</div>
+      <div class="activity-icon">🔍</div>
+      <div class="activity-icon">⎇</div>
+      <div class="activity-icon">🐛</div>
+      <div class="activity-icon active" style="color:#c0392b;" title="Hyperprobe">
+        ⬤
+        <div class="activity-badge" id="activityBadge" style="display:none;"></div>
+      </div>
+      <div class="activity-icon" style="margin-top:auto;margin-bottom:8px;">⚙</div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">Explorer <span>⋯</span></div>
+      <div class="file-tree">
+        <div class="file-item folder">📁 src/main/java</div>
+        <div class="file-item folder" style="padding-left:32px;">📁 com.payment.service</div>
+        <div class="file-item active" style="padding-left:44px;"><span class="file-icon">☕</span> PaymentService.java</div>
+        <div class="file-item" style="padding-left:44px;"><span class="file-icon">☕</span> BalanceService.java</div>
+        <div class="file-item" style="padding-left:44px;"><span class="file-icon">☕</span> DBConnectionPool.java</div>
+        <div class="file-item" style="padding-left:44px;"><span class="file-icon">☕</span> OrderHandler.java</div>
+        <div class="file-item folder" style="padding-left:32px;">📁 com.payment.model</div>
+        <div class="file-item" style="padding-left:44px;"><span class="file-icon">☕</span> Order.java</div>
+        <div class="file-item" style="padding-left:44px;"><span class="file-icon">☕</span> Balance.java</div>
+      </div>
+    </div>
+
+    <!-- Editor area -->
+    <div class="editor-area">
+
+      <!-- Tab bar -->
+      <div class="tabbar">
+        <div class="tab active">
+          <span>☕</span> PaymentService.java
+          <span class="tab-close">✕</span>
+        </div>
+        <div class="tab">
+          <span>☕</span> BalanceService.java
+          <span class="tab-close">✕</span>
+        </div>
+      </div>
+
+      <div class="editor-panel-split">
+
+        <!-- Code editor -->
+        <div class="editor" id="codeEditor">
+          <div class="code-scroll" id="codeContent">
+            <!-- lines rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Bottom panel -->
+        <div class="bottom-panel" id="bottomPanel">
+          <div class="panel-tabs">
+            <div class="panel-tab">Terminal</div>
+            <div class="panel-tab">Problems</div>
+            <div class="panel-tab">Output</div>
+            <div class="panel-tab active">
+              ⬤ Hyperprobe
+              <span class="panel-tab-badge" id="snapshotBadge">0</span>
+            </div>
+          </div>
+          <div class="panel-content" id="panelContent">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <div class="status-left">
+      <div class="status-item"><span class="status-dot"></span> main</div>
+      <div class="status-item" id="statusBp">⬤ 0 breakpoints active</div>
+      <div class="status-item" id="statusSnapshots">📸 0 snapshots</div>
+    </div>
+    <div class="status-right">
+      <div class="status-item">Java 17</div>
+      <div class="status-item">production</div>
+      <div class="status-item">UTF-8</div>
+      <div class="status-item">Ln 34, Col 1</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step nav -->
+<div class="step-label" id="stepLabel">Step 1 of 3 — Right-click line 34 to add a breakpoint</div>
+<div class="step-dots">
+  <div class="step-dot active" id="dot0" onclick="goToStep(0)"></div>
+  <div class="step-dot" id="dot1" onclick="goToStep(1)"></div>
+  <div class="step-dot" id="dot2" onclick="goToStep(2)"></div>
+</div>
+<div class="step-indicator">
+  <button class="step-btn" id="prevBtn" onclick="prevStep()">← Back</button>
+  <button class="step-btn primary" id="nextBtn" onclick="nextStep()">Next: Activate →</button>
+</div>
+
+<script>
+// ── STATE ──
+let currentStep = 0;
+let bpActive = false;
+let snapshotCount = 0;
+
+const steps = [
+  {
+    label: 'Step 1 of 3 — Right-click line 34 to add a breakpoint',
+    nextLabel: 'Next: Configure →',
+    bpActive: false,
+    showFeed: false,
+    snapshots: []
+  },
+  {
+    label: 'Step 2 of 3 — Breakpoint active. Waiting for next real request…',
+    nextLabel: 'Next: Snapshot fires →',
+    bpActive: true,
+    showFeed: true,
+    snapshots: []
+  },
+  {
+    label: 'Step 3 of 3 — Snapshot captured. Click to inspect.',
+    nextLabel: 'Restart demo',
+    bpActive: true,
+    showFeed: true,
+    snapshots: [
+      {
+        id: 1,
+        line: 34,
+        fn: 'processPayment()',
+        time: '23:04:19.441',
+        summary: 'balance = null',
+        condition: "user.tier == 'free'",
+        stack: [
+          { fn: 'processPayment()', loc: 'PaymentService.java', line: 34, active: true },
+          { fn: 'handleRequest()', loc: 'OrderHandler.java', line: 112 },
+          { fn: 'doFilter()', loc: 'RequestFilter.java', line: 67 },
+          { fn: 'execute()', loc: 'HttpServlet.java', line: 655 },
+        ]
+      }
+    ]
+  }
+];
+
+// ── CODE LINES ──
+const codeLines = [
+  { n: 28, code: '<span class="cm">// Process payment for the given order</span>' },
+  { n: 29, code: '<span class="kw">@Override</span>' },
+  { n: 30, code: '<span class="kw">public</span> <span class="ty">PaymentResult</span> <span class="fn">processPayment</span>(<span class="ty">Order</span> <span class="va">order</span>) {' },
+  { n: 31, code: '    <span class="ty">String</span> <span class="va">userId</span> = <span class="va">order</span>.<span class="prop">getUserId</span>();' },
+  { n: 32, code: '    <span class="ty">double</span> <span class="va">amount</span> = <span class="va">order</span>.<span class="prop">getTotal</span>();' },
+  { n: 33, code: '' },
+  { n: 34, code: '    <span class="ty">Balance</span> <span class="va">balance</span> = <span class="fn">getBalance</span>(<span class="va">userId</span>);', isBpLine: true },
+  { n: 35, code: '' },
+  { n: 36, code: '    <span class="kw">if</span> (<span class="va">balance</span> == <span class="kw">null</span> || <span class="va">balance</span>.<span class="prop">amount</span> < <span class="va">amount</span>) {' },
+  { n: 37, code: '        <span class="kw">throw new</span> <span class="ty">InsufficientFundsException</span>();' },
+  { n: 38, code: '    }' },
+  { n: 39, code: '' },
+  { n: 40, code: '    <span class="va">ledger</span>.<span class="fn">deduct</span>(<span class="va">userId</span>, <span class="va">amount</span>);' },
+  { n: 41, code: '    <span class="fn">notify</span>(<span class="va">order</span>.<span class="prop">getUser</span>(), <span class="st">"success"</span>);' },
+  { n: 42, code: '    <span class="kw">return</span> <span class="ty">PaymentResult</span>.<span class="fn">success</span>();' },
+];
+
+// ── RENDER CODE ──
+function renderCode(step) {
+  const el = document.getElementById('codeContent');
+  const state = steps[step];
+  el.innerHTML = codeLines.map(line => {
+    const isBp = line.isBpLine;
+    const cls = 'code-line' + (isBp ? ' bp-line' : '');
+    const gutter = isBp && state.bpActive
+      ? `<span class="line-gutter"><span class="bp-dot"></span></span>`
+      : `<span class="line-gutter"></span>`;
+    let ghost = '';
+    if (isBp && state.bpActive) {
+      if (step === 1) ghost = `<span class="inline-ghost">// ⬤ active · user.tier == 'free' · expires 29:58</span>`;
+      if (step === 2) ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
+    }
+    const ctx = isBp && step === 0 ? 'oncontextmenu="showCtx(event)"' : 'oncontextmenu="event.preventDefault()"';
+    return `<div class="${cls}" ${isBp ? 'id="bpCodeLine"' : ''} ${ctx}>${gutter}<span class="line-num">${line.n}</span><span class="line-code">${line.code}${ghost}</span></div>`;
+  }).join('');
+}
+
+// ── RENDER PANEL ──
+function renderPanel(step) {
+  const state = steps[step];
+  const panel = document.getElementById('panelContent');
+
+  if (step === 0) {
+    panel.innerHTML = `
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#555;padding:20px;text-align:center;">
+        <div style="font-size:28px;">⬤</div>
+        <div style="font-size:13px;color:#858585;">No breakpoints active.</div>
+        <div style="font-size:11px;line-height:1.8;max-width:320px;">Right-click any line in the editor and select <span style="color:#c0392b;font-weight:600;">Add Hyperprobe Breakpoint…</span> to instrument your live service.</div>
+      </div>`;
+    return;
+  }
+
+  if (step === 1) {
+    panel.innerHTML = `
+      <div class="snapshot-feed">
+        <div class="feed-header">Snapshots <div class="feed-header-actions"><span class="feed-action">Clear</span><span class="feed-action">Export</span></div></div>
+        <div class="feed-waiting">
+          <div class="waiting-spinner"></div>
+          <div>Breakpoint active on line 34</div>
+          <div style="color:#6a9955;font-size:10px;">Condition: user.tier == 'free'<br>TTL: 29:58 remaining · Rate: 10/min</div>
+        </div>
+      </div>
+      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;">
+        <div style="text-align:center;color:#555;font-size:12px;line-height:1.8;">
+          <div style="font-size:24px;margin-bottom:8px;">📸</div>
+          Waiting for next request matching condition…<br>
+          <span style="font-size:10px;color:#6a9955;">Thread will not pause · Zero traffic impact</span>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Step 3 — snapshot captured
+  const snap = state.snapshots[0];
+  panel.innerHTML = `
+    <div class="snapshot-feed">
+      <div class="feed-header">Snapshots <div class="feed-header-actions"><span class="feed-action">Clear</span><span class="feed-action">Export</span></div></div>
+      <div class="feed-list">
+        <div class="feed-item active">
+          <div class="feed-item-top">
+            <span class="feed-item-line">line ${snap.line}</span>
+            <span class="feed-item-time">${snap.time}</span>
+          </div>
+          <div class="feed-item-fn">${snap.fn}</div>
+          <div class="feed-item-summary">balance = <span class="bad">null</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="snapshot-detail">
+      <div class="detail-header">
+        <div class="detail-title">
+          <span class="detail-badge">SNAPSHOT #1</span>
+          processPayment() · line ${snap.line}
+        </div>
+        <div class="detail-meta">
+          <span>${snap.time}</span>
+          <span>thread: http-nio-8080-exec-3</span>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="vars-pane">
+
+          <!-- LOCAL VARIABLES -->
+          <div class="dbg-section">
+            <div class="dbg-section-hdr open" onclick="toggleSection(this)">
+              <span class="dbg-arrow">▾</span>Local Variables
+            </div>
+            <div class="dbg-section-body">
+              <div class="dbg-row bad">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name">balance</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val null">null</span>
+              </div>
+              <div class="dbg-row">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name">amount</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val num">299.99</span>
+              </div>
+              <div class="dbg-row">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name">userId</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val str">"usr_9182"</span>
+              </div>
+              <!-- order object — expandable -->
+              <div class="dbg-row expandable" onclick="toggleObj('order-obj')">
+                <span class="dbg-expand">▶</span>
+                <span class="dbg-name">order</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val obj">Order {total: 299.99, status: "PENDING", …}</span>
+              </div>
+              <div class="dbg-children" id="order-obj" style="display:none;">
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">total</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val num">299.99</span>
+                </div>
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">status</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val str">"PENDING"</span>
+                </div>
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">userId</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val str">"usr_9182"</span>
+                </div>
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">createdAt</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val str">"2024-03-12T14:23:19Z"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WATCH -->
+          <div class="dbg-section">
+            <div class="dbg-section-hdr open" onclick="toggleSection(this)">
+              <span class="dbg-arrow">▾</span>Watch
+            </div>
+            <div class="dbg-section-body">
+              <div class="dbg-row bad">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name dbg-watch-expr">balance == null</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val bool">true</span>
+              </div>
+              <div class="dbg-row warn">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name dbg-watch-expr">order.total &gt; 0</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val bool">true</span>
+              </div>
+              <div class="dbg-row">
+                <span class="dbg-expand"></span>
+                <span class="dbg-name dbg-watch-expr">amount - balance</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val null">NullPointerException</span>
+              </div>
+              <div class="dbg-add-watch">
+                <span class="dbg-add-icon">+</span> Add expression…
+              </div>
+            </div>
+          </div>
+
+          <!-- CLOSURE -->
+          <div class="dbg-section">
+            <div class="dbg-section-hdr" onclick="toggleSection(this)">
+              <span class="dbg-arrow">▶</span>Closure
+            </div>
+            <div class="dbg-section-body" style="display:none;">
+              <div class="dbg-row expandable" onclick="toggleObj('this-obj')">
+                <span class="dbg-expand">▶</span>
+                <span class="dbg-name">this</span>
+                <span class="dbg-eq">:</span>
+                <span class="dbg-val obj">PaymentService {ledger: LedgerService, …}</span>
+              </div>
+              <div class="dbg-children" id="this-obj" style="display:none;">
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">ledger</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val obj">LedgerService {…}</span>
+                </div>
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">dbPool</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val warn">HikariPool {active: 5, max: 5, waiting: 12}</span>
+                </div>
+                <div class="dbg-row child">
+                  <span class="dbg-expand"></span>
+                  <span class="dbg-name">timeout</span>
+                  <span class="dbg-eq">:</span>
+                  <span class="dbg-val num">3000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="stack-pane">
+          <div class="pane-title">Call Stack</div>
+          ${snap.stack.map(f => `
+            <div class="stack-frame ${f.active ? 'active' : ''}">
+              <div class="stack-fn">${f.fn}</div>
+              <div class="stack-loc">${f.loc} · <span>line ${f.line}</span></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleSection(hdr) {
+  const body = hdr.nextElementSibling;
+  const arrow = hdr.querySelector('.dbg-arrow');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▶' : '▾';
+  hdr.classList.toggle('open', !isOpen);
+}
+
+function toggleObj(id) {
+  const el = document.getElementById(id);
+  const row = el.previousElementSibling;
+  const arrow = row.querySelector('.dbg-expand');
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▶' : '▾';
+}
+
+// ── STEP NAVIGATION ──
+function goToStep(n) {
+  currentStep = n;
+  renderStep();
+}
+
+function nextStep() {
+  if (currentStep < 2) {
+    currentStep++;
+    renderStep();
+  } else {
+    currentStep = 0;
+    renderStep();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+  }
+}
+
+function renderStep() {
+  const state = steps[currentStep];
+
+  // Code
+  renderCode(currentStep);
+
+  // Panel
+  renderPanel(currentStep);
+
+  // Status bar
+  document.getElementById('statusBp').textContent = state.bpActive ? '⬤ 1 breakpoint active' : '⬤ 0 breakpoints active';
+  document.getElementById('statusSnapshots').textContent = `📸 ${state.snapshots.length} snapshot${state.snapshots.length !== 1 ? 's' : ''}`;
+
+  // Badge
+  document.getElementById('snapshotBadge').textContent = state.snapshots.length;
+  document.getElementById('activityBadge').style.display = state.snapshots.length > 0 ? 'block' : 'none';
+
+  // Nav
+  document.getElementById('stepLabel').textContent = state.label;
+  document.getElementById('nextBtn').textContent = state.nextLabel;
+  document.getElementById('prevBtn').style.opacity = currentStep === 0 ? '0.3' : '1';
+
+  // Dots
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`dot${i}`).className = `step-dot ${i === currentStep ? 'active' : ''}`;
+  }
+}
+
+// ── CONTEXT MENU ──
+function showCtx(e) {
+  if (currentStep !== 0) return;
+  e.preventDefault();
+  const menu = document.getElementById('ctxMenu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('visible');
+}
+
+document.addEventListener('click', e => {
+  const menu = document.getElementById('ctxMenu');
+  if (menu.classList.contains('visible')) {
+    const item = e.target.closest('.ctx-item');
+    if (item && item.querySelector('.ctx-hp')) {
+      // clicked Add Hyperprobe Breakpoint
+      menu.classList.remove('visible');
+      document.getElementById('bpOverlay').classList.add('visible');
+      return;
+    }
+    menu.classList.remove('visible');
+  }
+});
+
+document.getElementById('bpClose').onclick = () => document.getElementById('bpOverlay').classList.remove('visible');
+document.getElementById('bpCancel').onclick = () => document.getElementById('bpOverlay').classList.remove('visible');
+document.getElementById('bpActivate').onclick = () => {
+  document.getElementById('bpOverlay').classList.remove('visible');
+  currentStep = 1;
+  renderStep();
+};
+
+// ── INIT ──
+renderStep();
+</script>
+</body>
+</html>
