@@ -3,106 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hyperprobe — VS Code Plugin Mockup</title>
+<title>Hyperprobe — Debug</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monospace; font-size:13px; color:#d4d4d4; overflow:hidden; }
 .vscode { display:flex; flex-direction:column; height:100vh; }
 
+/* ── CHROME ── */
 .titlebar { height:30px; background:#3c3c3c; display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; border-bottom:1px solid #252526; }
 .titlebar-dots { display:flex; gap:6px; }
 .titlebar-dot { width:12px; height:12px; border-radius:50%; }
 .titlebar-title { font-size:12px; color:#cccccc; }
 .titlebar-controls { display:flex; gap:16px; font-size:11px; color:#8b8b8b; }
-
 .menubar { height:26px; background:#3c3c3c; display:flex; align-items:center; padding:0 8px; gap:2px; flex-shrink:0; }
 .menu-item { padding:2px 8px; font-size:12px; color:#cccccc; cursor:pointer; border-radius:3px; }
 .menu-item:hover { background:#505050; }
-
 .main { display:flex; flex:1; overflow:hidden; }
 
+/* ── ACTIVITY BAR ── */
 .activitybar { width:48px; background:#333333; display:flex; flex-direction:column; align-items:center; padding-top:8px; gap:4px; flex-shrink:0; border-right:1px solid #252526; }
 .activity-icon { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px; cursor:pointer; color:#858585; font-size:18px; position:relative; }
 .activity-icon.active { color:#d4d4d4; }
 .activity-icon.active::before { content:''; position:absolute; left:-8px; top:50%; transform:translateY(-50%); width:2px; height:24px; background:#d4d4d4; border-radius:1px; }
 .activity-badge { position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#c0392b; display:none; }
 
-.sidebar { width:220px; background:#252526; border-right:1px solid #1e1e1e; display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; }
-.sidebar-header { padding:10px 12px 6px; font-size:11px; font-weight:600; color:#bbb; letter-spacing:1.5px; text-transform:uppercase; }
-.file-tree { flex:1; overflow-y:auto; }
-.file-item { display:flex; align-items:center; gap:6px; padding:3px 12px 3px 20px; font-size:13px; color:#cccccc; cursor:pointer; white-space:nowrap; }
-.file-item:hover { background:#2a2d2e; }
-.file-item.active { background:#094771; color:#fff; }
-.file-item.folder { color:#dcb67a; }
+/* ══ SIDEBAR ══ */
+.sidebar { width:300px; flex-shrink:0; background:#252526; border-right:1px solid #1e1e1e; display:flex; flex-direction:column; overflow:hidden; }
 
+/* Header — always visible */
+.sidebar-header { padding:10px 12px 10px; background:#2d2d2d; border-bottom:1px solid #333; flex-shrink:0; display:flex; align-items:center; gap:8px; }
+.sidebar-dot { width:8px; height:8px; border-radius:50%; background:#c0392b; animation:blink 1.5s ease-in-out infinite; flex-shrink:0; }
+.sidebar-name { font-size:12px; font-weight:600; color:#d4d4d4; letter-spacing:0.5px; }
+.sidebar-badge { font-size:9px; background:#c0392b; color:white; padding:1px 6px; border-radius:2px; font-weight:700; letter-spacing:1px; margin-left:auto; }
+
+/* Idle state — shown before AI is opened */
+.sidebar-idle { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.idle-content { padding:20px 16px 16px; display:flex; flex-direction:column; gap:14px; }
+.idle-desc { font-size:11px; color:#858585; line-height:1.8; }
+.idle-desc strong { color:#d4d4d4; }
+.btn-use-ai { background:#c0392b; color:white; border:none; padding:9px 0; width:100%; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:2px; letter-spacing:0.5px; transition:background 0.15s; display:flex; align-items:center; justify-content:center; gap:7px; }
+.btn-use-ai:hover { background:#a93226; }
+.idle-divider { display:flex; align-items:center; gap:10px; margin:4px 0; }
+.idle-divider-line { flex:1; height:1px; background:#333; }
+.idle-divider-text { font-size:10px; color:#555; }
+.manual-hint-box { background:#1e1e1e; border:1px solid #333; padding:10px 12px; }
+.manual-hint-title { font-size:9.5px; color:#858585; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.manual-hint-step { display:flex; align-items:flex-start; gap:7px; font-size:10.5px; color:#858585; line-height:1.6; margin-bottom:5px; }
+.manual-hint-step:last-child { margin-bottom:0; }
+.manual-hint-num { color:#c0392b; font-weight:700; flex-shrink:0; }
+
+/* BP list in sidebar — shown once manual BPs are added */
+.bp-sidebar-section { border-top:1px solid #2a2a2a; flex-shrink:0; }
+.bp-sidebar-hdr { padding:6px 12px; font-size:10px; color:#858585; letter-spacing:1px; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
+.bp-sidebar-count { color:#c0392b; font-weight:700; }
+.bp-sidebar-list { max-height:180px; overflow-y:auto; }
+.bp-sidebar-item { padding:7px 12px; border-bottom:1px solid #2a2a2a; display:flex; align-items:flex-start; gap:8px; }
+.bpi-dot { width:9px; height:9px; border-radius:50%; background:#c0392b; margin-top:3px; flex-shrink:0; box-shadow:0 0 5px rgba(192,57,43,0.7); animation:pulse 2s ease-in-out infinite; }
+.bpi-info { flex:1; }
+.bpi-line { font-size:11.5px; color:#4ec9b0; font-weight:600; }
+.bpi-fn { font-size:10.5px; color:#dcdcaa; }
+.bpi-cond { font-size:10px; color:#6a9955; margin-top:1px; }
+.bpi-status { font-size:8px; padding:1px 5px; border-radius:2px; font-weight:700; flex-shrink:0; white-space:nowrap; }
+.bpi-captured { background:rgba(22,101,52,0.2); color:#6ee7b7; border:1px solid rgba(22,101,52,0.3); }
+.bpi-waiting  { background:rgba(215,153,33,0.15); color:#fcd34d; border:1px solid rgba(215,153,33,0.3); }
+
+/* ── AI CHAT ── */
+.ai-chat { flex:1; display:none; flex-direction:column; overflow:hidden; }
+.ai-chat.open { display:flex; }
+.chat-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
+.chat-messages::-webkit-scrollbar { width:3px; }
+.chat-messages::-webkit-scrollbar-thumb { background:#3c3c3c; }
+
+.msg { display:flex; gap:7px; align-items:flex-start; }
+.msg.msg-dev { flex-direction:row-reverse; }
+.avatar { width:22px; height:22px; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex-shrink:0; margin-top:1px; }
+.avatar-dev { background:#2d3748; color:#9cdcfe; border:1px solid #4a5568; }
+.avatar-ai  { background:#c0392b; color:white; }
+.bubble { font-size:11.5px; line-height:1.7; max-width:calc(100% - 30px); }
+.bubble code { font-family:'JetBrains Mono',monospace; font-size:10.5px; background:rgba(255,255,255,0.08); padding:1px 4px; border-radius:2px; }
+.bubble-dev { background:#2a2d2e; border:1px solid #3a3a3a; padding:8px 11px; color:#d4d4d4; border-radius:2px 0 2px 2px; }
+.bubble-ai  { background:#1e1e1e; border:1px solid #333; padding:9px 12px; color:#d4d4d4; border-radius:0 2px 2px 2px; }
+
+.typing-indicator { display:flex; gap:4px; align-items:center; padding:2px 0; }
+.typing-dot { width:5px; height:5px; border-radius:50%; background:#858585; animation:typingBounce 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+.bp-proposal { margin:8px 0 4px; border:1px solid rgba(192,57,43,0.3); background:rgba(192,57,43,0.05); }
+.bp-proposal-item { padding:7px 10px; border-bottom:1px solid rgba(192,57,43,0.15); font-size:11px; }
+.bp-proposal-item:last-child { border-bottom:none; }
+.bpi-label { color:#4ec9b0; font-weight:700; }
+.bpi-fn-name { color:#dcdcaa; margin-left:4px; }
+.bpi-reason { color:#858585; font-size:10px; margin-top:2px; line-height:1.5; }
+.bp-actions { display:flex; gap:6px; margin-top:9px; }
+.btn-approve { background:#c0392b; color:white; border:none; padding:6px 14px; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; cursor:pointer; border-radius:2px; transition:background 0.15s; }
+.btn-approve:hover { background:#a93226; }
+.btn-approve:disabled { background:#3c3c3c; color:#555; cursor:default; }
+.btn-dismiss { background:transparent; color:#858585; border:1px solid #3c3c3c; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:10.5px; cursor:pointer; border-radius:2px; }
+.btn-dismiss:hover { color:#d4d4d4; }
+
+.chat-waiting { display:flex; align-items:center; gap:8px; padding:8px 11px; background:#1e1e1e; border:1px solid #333; color:#858585; font-size:11px; border-radius:0 2px 2px 2px; }
+.chat-spinner { width:13px; height:13px; border:2px solid #333; border-top:2px solid #c0392b; border-radius:50%; animation:spin 1s linear infinite; flex-shrink:0; }
+
+.snap-summary { margin:6px 0; background:rgba(192,57,43,0.05); border:1px solid rgba(192,57,43,0.2); overflow:hidden; }
+.snap-summary-hdr { background:rgba(192,57,43,0.1); padding:4px 9px; display:flex; align-items:center; justify-content:space-between; }
+.snap-summary-title { color:#f48771; font-weight:700; font-size:10.5px; }
+.snap-summary-sub { color:#858585; font-size:9px; }
+.snap-summary-rows { padding:5px 9px; }
+.snap-row { display:flex; align-items:baseline; font-family:'JetBrains Mono',monospace; font-size:10.5px; line-height:1.7; }
+.snap-row.hl { background:rgba(192,57,43,0.1); margin:0 -9px; padding:0 9px; }
+.sr-k { color:#9b9b9b; min-width:105px; }
+.sr-e { color:#555; margin:0 4px; }
+.sr-bad  { color:#f48771; font-weight:700; }
+.sr-warn { color:#d97706; font-weight:700; }
+.sr-info { color:#93c5fd; }
+.sr-note { color:#858585; font-size:9px; font-style:italic; margin-left:5px; }
+.snap-sec { font-size:8.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#569cd6; margin-top:4px; display:block; }
+
+.rca-block { margin:7px 0 2px; border:1px solid #333; overflow:hidden; }
+.rca-block-hdr { padding:4px 9px; background:#252526; font-size:8.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#858585; border-bottom:1px solid #333; }
+.rca-row { display:flex; gap:7px; align-items:flex-start; padding:6px 9px; border-bottom:1px solid #2a2a2a; line-height:1.6; font-size:11px; }
+.rca-row:last-child { border-bottom:none; }
+.rca-lbl { font-size:8px; font-weight:700; padding:2px 4px; border-radius:2px; flex-shrink:0; margin-top:2px; white-space:nowrap; }
+.lbl-cause { background:rgba(192,57,43,0.15); color:#f48771; border:1px solid rgba(192,57,43,0.3); }
+.lbl-scope { background:rgba(29,78,216,0.15); color:#93c5fd; border:1px solid rgba(29,78,216,0.3); }
+.lbl-fix   { background:rgba(22,101,52,0.15); color:#6ee7b7; border:1px solid rgba(22,101,52,0.3); }
+.rca-val { color:#d4d4d4; flex:1; }
+.rca-val code { font-family:'JetBrains Mono',monospace; font-size:10.5px; background:rgba(255,255,255,0.07); padding:1px 3px; }
+
+.chat-input-area { padding:9px 10px; border-top:1px solid #2a2a2a; flex-shrink:0; display:flex; gap:6px; align-items:flex-end; }
+.chat-input { flex:1; background:#1e1e1e; border:1px solid #3c3c3c; color:#d4d4d4; padding:7px 10px; font-family:'JetBrains Mono',monospace; font-size:11px; border-radius:2px; outline:none; resize:none; max-height:72px; overflow-y:auto; line-height:1.5; }
+.chat-input:focus { border-color:#c0392b; }
+.chat-input::placeholder { color:#555; }
+.chat-send { background:#c0392b; color:white; border:none; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; border-radius:2px; flex-shrink:0; transition:background 0.15s; }
+.chat-send:hover { background:#a93226; }
+.chat-send:disabled { background:#3c3c3c; cursor:default; }
+
+/* ── EDITOR ── */
 .editor-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .tabbar { height:35px; background:#2d2d2d; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #252526; }
 .tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:8px; font-size:13px; color:#969696; cursor:pointer; border-right:1px solid #252526; white-space:nowrap; }
 .tab.active { background:#1e1e1e; color:#d4d4d4; border-top:1px solid #c0392b; }
-
 .editor-panel-split { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-
 .editor { flex:0 0 52%; background:#1e1e1e; overflow:hidden; display:flex; flex-direction:column; }
 .code-scroll { flex:1; overflow:hidden; display:flex; flex-direction:column; padding:10px 0; }
 .code-line { display:flex; align-items:center; white-space:pre; line-height:1.65; font-size:13px; }
-.code-line.bp-line { background:rgba(192,57,43,0.16); }
+.code-line.bp-line  { background:rgba(192,57,43,0.16); }
+.code-line.bp-line2 { background:rgba(192,57,43,0.10); }
 .line-gutter { width:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
 .bp-dot { width:11px; height:11px; border-radius:50%; background:#c0392b; box-shadow:0 0 6px rgba(192,57,43,0.8); animation:pulse 2s ease-in-out infinite; }
+.bp-dot-proposed { width:11px; height:11px; border-radius:50%; background:transparent; border:2px dashed #c0392b; opacity:0.7; }
 @keyframes pulse { 0%,100%{box-shadow:0 0 4px rgba(192,57,43,0.5)} 50%{box-shadow:0 0 10px rgba(192,57,43,1)} }
+@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0.25} }
+@keyframes spin   { to{transform:rotate(360deg);} }
 .line-num { width:36px; flex-shrink:0; text-align:right; padding-right:14px; color:#858585; font-size:13px; user-select:none; }
-.code-line.bp-line .line-num { color:#d4d4d4; }
+.code-line.bp-line .line-num, .code-line.bp-line2 .line-num { color:#d4d4d4; }
 .line-code { flex:1; padding-right:12px; }
 .inline-ghost { color:#6a9955; font-size:12px; font-style:italic; margin-left:12px; opacity:0.85; }
 .kw{color:#569cd6;}.fn{color:#dcdcaa;}.ty{color:#4ec9b0;}.st{color:#ce9178;}.cm{color:#6a9955;font-style:italic;}.va{color:#9cdcfe;}.prop{color:#9cdcfe;}
 
+/* ── CONTEXT MENU ── */
+.ctx-menu { position:fixed; background:#252526; border:1px solid #454545; min-width:220px; z-index:400; box-shadow:0 4px 20px rgba(0,0,0,0.5); display:none; }
+.ctx-menu.visible { display:block; }
+.ctx-item { padding:7px 14px; font-size:12px; color:#d4d4d4; cursor:pointer; display:flex; align-items:center; gap:10px; }
+.ctx-item:hover { background:#094771; }
+.ctx-item.sep { border-top:1px solid #333; }
+.ctx-hp { color:#c0392b; font-weight:700; }
+
+/* ── BP FORM ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.18s; }
+.overlay.visible { opacity:1; pointer-events:all; }
+.bp-form { background:#252526; border:1px solid #454545; width:430px; border-radius:3px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+.bp-form-header { padding:11px 16px; background:#2d2d30; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; justify-content:space-between; }
+.bp-form-title { font-size:13px; color:#d4d4d4; font-weight:600; display:flex; align-items:center; gap:8px; }
+.bp-form-close { color:#858585; cursor:pointer; font-size:16px; }
+.bp-form-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+.bp-form-row { display:flex; flex-direction:column; gap:4px; }
+.bp-form-label { font-size:10.5px; color:#858585; letter-spacing:0.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+.bp-optional { font-size:8.5px; background:#094771; color:#9cdcfe; padding:1px 5px; border-radius:2px; text-transform:none; letter-spacing:0; }
+.bp-form-input { background:#3c3c3c; border:1px solid #555; color:#d4d4d4; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:11.5px; border-radius:2px; outline:none; }
+.bp-form-input:focus { border-color:#569cd6; }
+.bp-form-input::placeholder { color:#555; }
+.bp-form-2col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.bp-form-hint { font-size:10px; color:#6a9955; font-style:italic; }
+.bp-form-footer { padding:10px 16px; background:#2d2d30; border-top:1px solid #3c3c3c; display:flex; gap:8px; justify-content:flex-end; }
+.bp-btn { padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:11.5px; border:none; cursor:pointer; border-radius:2px; font-weight:600; }
+.bp-btn-primary { background:#c0392b; color:white; }
+.bp-btn-primary:hover { background:#a93226; }
+.bp-btn-sec { background:#3c3c3c; color:#d4d4d4; border:1px solid #555; }
+
+/* ── BOTTOM PANEL ── */
 .bottom-panel { flex:1; background:#1e1e1e; border-top:2px solid #c0392b; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
 .panel-tabs { height:35px; background:#252526; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #1e1e1e; }
 .panel-tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:6px; font-size:12px; color:#969696; cursor:pointer; border-right:1px solid #1e1e1e; white-space:nowrap; }
 .panel-tab.active { background:#1e1e1e; color:#d4d4d4; border-top:2px solid #c0392b; }
 .panel-tab-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; min-width:16px; text-align:center; }
 .panel-content { flex:1; display:flex; overflow:hidden; }
-
-.snapshot-feed { width:260px; border-right:1px solid #2d2d2d; display:flex; flex-direction:column; flex-shrink:0; }
-.feed-header { padding:7px 12px; font-size:11px; color:#858585; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #2d2d2d; display:flex; align-items:center; justify-content:space-between; }
-.feed-action { font-size:11px; color:#569cd6; cursor:pointer; }
+.snapshot-feed { width:250px; border-right:1px solid #2d2d2d; display:flex; flex-direction:column; flex-shrink:0; }
+.feed-header { padding:7px 12px; font-size:11px; color:#858585; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #2d2d2d; }
 .feed-list { flex:1; overflow-y:auto; }
-.feed-item { padding:9px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; transition:background 0.1s; }
+.feed-item { padding:9px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; }
 .feed-item:hover { background:#2a2d2e; }
-.feed-item.active { background:#094771; border-left:2px solid #c0392b; }
-.feed-item-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
-.feed-item-line { font-size:12px; color:#4ec9b0; font-weight:600; }
-.feed-item-time { font-size:10px; color:#858585; }
-.feed-item-fn { font-size:11px; color:#dcdcaa; margin-bottom:2px; }
-.feed-item-summary { font-size:11px; color:#969696; }
-.feed-item-summary .bad { color:#f48771; font-weight:600; }
+.feed-item.sel { background:#094771; border-left:2px solid #c0392b; }
+.fi-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.fi-line { font-size:12px; color:#4ec9b0; font-weight:600; }
+.fi-time { font-size:10px; color:#858585; }
+.fi-fn { font-size:11px; color:#dcdcaa; margin-bottom:1px; }
+.fi-summary .bad { color:#f48771; font-weight:600; }
+.feed-empty { padding:24px 12px; text-align:center; color:#555; font-size:11px; line-height:1.9; }
 .feed-waiting { display:flex; flex-direction:column; align-items:center; gap:8px; padding:24px 12px; color:#555; font-size:11px; text-align:center; }
 .waiting-spinner { width:18px; height:18px; border:2px solid #333; border-top:2px solid #c0392b; border-radius:50%; animation:spin 1s linear infinite; }
-@keyframes spin { to{transform:rotate(360deg);} }
-
 .snapshot-detail { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .detail-header { padding:7px 14px; border-bottom:1px solid #2d2d2d; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .detail-title { font-size:12px; color:#d4d4d4; display:flex; align-items:center; gap:8px; }
-.detail-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:2px 6px; border-radius:2px; letter-spacing:0.5px; }
+.detail-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:2px 6px; border-radius:2px; }
 .detail-meta { font-size:10px; color:#858585; display:flex; gap:12px; }
 .detail-body { flex:1; overflow-y:auto; display:flex; }
-
 .vars-pane { flex:1; border-right:1px solid #2d2d2d; overflow-y:auto; }
 .pane-title { padding:5px 8px; font-size:10px; color:#858585; letter-spacing:1.2px; text-transform:uppercase; background:#252526; border-bottom:1px solid #2d2d2d; position:sticky; top:0; z-index:1; }
 .dbg-section { border-bottom:1px solid #2a2a2a; }
-.dbg-section-hdr { padding:4px 8px; font-size:11px; font-weight:700; color:#bbb; letter-spacing:0.5px; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; gap:6px; background:#252526; user-select:none; }
+.dbg-section-hdr { padding:4px 8px; font-size:11px; font-weight:700; color:#bbb; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; gap:6px; background:#252526; user-select:none; }
 .dbg-section-hdr:hover { background:#2a2d2e; }
 .dbg-section-hdr.open { color:#d4d4d4; }
-.dbg-arrow { font-size:9px; color:#858585; width:10px; flex-shrink:0; }
+.dbg-arrow { font-size:9px; color:#858585; width:10px; }
 .dbg-row { display:flex; align-items:baseline; padding:2px 8px 2px 24px; min-height:20px; }
 .dbg-row:hover { background:#2a2d2e; }
-.dbg-row.bad { background:rgba(192,57,43,0.1); }
+.dbg-row.bad  { background:rgba(192,57,43,0.1); }
 .dbg-row.warn { background:rgba(215,153,33,0.07); }
-.dbg-row.expandable { cursor:pointer; }
-.dbg-row.child { padding-left:44px; }
 .dbg-expand { font-size:9px; color:#858585; width:14px; flex-shrink:0; margin-right:2px; }
 .dbg-name { color:#9cdcfe; font-size:12px; min-width:110px; flex-shrink:0; }
-.dbg-watch-expr { color:#dcdcaa; font-style:italic; }
 .dbg-eq { color:#858585; margin:0 6px; font-size:12px; flex-shrink:0; }
 .dbg-val { font-size:12px; }
 .dbg-val.null { color:#f48771; font-weight:700; }
@@ -111,10 +242,9 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
 .dbg-val.bool { color:#569cd6; }
 .dbg-val.obj  { color:#858585; font-style:italic; }
 .dbg-val.warn { color:#d97706; }
-.dbg-add-watch { padding:3px 8px 3px 38px; font-size:11px; color:#555; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.dbg-add-watch { padding:3px 8px 3px 38px; font-size:11px; color:#555; cursor:pointer; }
 .dbg-add-watch:hover { color:#858585; }
-
-.stack-pane { width:210px; overflow-y:auto; flex-shrink:0; border-left:1px solid #2d2d2d; }
+.stack-pane { width:200px; overflow-y:auto; flex-shrink:0; border-left:1px solid #2d2d2d; }
 .stack-frame { padding:5px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; }
 .stack-frame:hover { background:#2a2d2e; }
 .stack-frame.active { background:#094771; }
@@ -122,83 +252,52 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
 .stack-loc { font-size:10px; color:#858585; margin-top:1px; }
 .stack-loc span { color:#569cd6; }
 
+/* STATUS BAR */
 .statusbar { height:22px; background:#c0392b; display:flex; align-items:center; justify-content:space-between; padding:0 10px; flex-shrink:0; }
-.status-left { display:flex; gap:12px; align-items:center; }
-.status-item { font-size:11px; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px; }
-.status-dot { width:6px; height:6px; border-radius:50%; background:#fff; }
-.status-right { display:flex; gap:12px; }
+.status-left { display:flex; gap:14px; }
+.status-item { font-size:11px; color:rgba(255,255,255,0.9); }
+.status-right { display:flex; gap:14px; }
 
-/* CONTEXT MENU */
-.context-menu { position:fixed; background:#252526; border:1px solid #454545; min-width:220px; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,0.5); display:none; }
-.context-menu.visible { display:block; }
-.ctx-item { padding:7px 14px; font-size:12px; color:#d4d4d4; cursor:pointer; display:flex; align-items:center; gap:10px; }
-.ctx-item:hover { background:#094771; }
-.ctx-item.sep { border-top:1px solid #3c3c3c; margin-top:2px; padding-top:6px; }
-.ctx-hp { color:#c0392b; font-weight:700; }
-
-/* OVERLAY */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
-.overlay.visible { opacity:1; pointer-events:all; }
-.bp-form { background:#252526; border:1px solid #454545; width:440px; border-radius:4px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
-.bp-form-header { padding:12px 16px; background:#2d2d30; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; justify-content:space-between; }
-.bp-form-title { font-size:13px; color:#d4d4d4; font-weight:600; display:flex; align-items:center; gap:8px; }
-.bp-form-close { color:#858585; cursor:pointer; font-size:16px; }
-.bp-form-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
-.bp-form-row { display:flex; flex-direction:column; gap:5px; }
-.bp-form-label { font-size:11px; color:#858585; letter-spacing:0.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
-.bp-badge { font-size:9px; background:#094771; color:#9cdcfe; padding:1px 5px; border-radius:2px; text-transform:none; letter-spacing:0; }
-.bp-form-input { background:#3c3c3c; border:1px solid #555; color:#d4d4d4; padding:7px 10px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:2px; outline:none; }
-.bp-form-input:focus { border-color:#569cd6; }
-.bp-form-input::placeholder { color:#555; }
-.bp-form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.bp-hint { font-size:10px; color:#6a9955; font-style:italic; }
-.bp-form-footer { padding:12px 16px; background:#2d2d30; border-top:1px solid #3c3c3c; display:flex; gap:8px; justify-content:flex-end; }
-.bp-btn { padding:7px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border:none; cursor:pointer; border-radius:2px; font-weight:600; }
-.bp-btn-primary { background:#c0392b; color:white; }
-.bp-btn-primary:hover { background:#a93226; }
-.bp-btn-sec { background:#3c3c3c; color:#d4d4d4; border:1px solid #555; }
-.bp-btn-sec:hover { background:#4a4a4a; }
-
-/* DEMO NAV — bottom left */
+/* DEMO NAV */
 .demo-nav { position:fixed; bottom:28px; left:60px; display:flex; flex-direction:column; gap:5px; z-index:150; }
-.demo-step-label { font-size:10px; color:#858585; letter-spacing:0.3px; }
-.demo-dots { display:flex; gap:5px; align-items:center; margin:2px 0; }
+.demo-step-label { font-size:10px; color:#858585; max-width:500px; line-height:1.5; }
+.demo-dots { display:flex; gap:5px; margin:2px 0; }
 .demo-dot { width:6px; height:6px; border-radius:50%; background:#3c3c3c; border:1px solid #555; cursor:pointer; transition:all 0.2s; }
 .demo-dot.active { background:#c0392b; border-color:#c0392b; width:18px; border-radius:3px; }
-.demo-btns { display:flex; gap:5px; flex-wrap:wrap; }
-.demo-btn { background:#2d2d30; border:1px solid #454545; color:#d4d4d4; padding:5px 11px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:2px; white-space:nowrap; transition:all 0.15s; }
-.demo-btn:hover { background:#3c3c3c; border-color:#569cd6; }
+.demo-btns { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+.demo-btn { background:#2d2d30; border:1px solid #454545; color:#d4d4d4; padding:5px 11px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:2px; white-space:nowrap; }
+.demo-btn:hover { background:#3c3c3c; }
 .demo-btn.primary { background:#c0392b; border-color:#c0392b; color:white; }
 .demo-btn.primary:hover { background:#a93226; }
 .demo-btn.ghost { background:transparent; border-color:#3c3c3c; color:#858585; }
-.demo-btn.ghost:hover { color:#d4d4d4; border-color:#858585; }
+.demo-btn.ghost:hover { color:#d4d4d4; }
 </style>
 </head>
 <body>
 
 <!-- CONTEXT MENU -->
-<div class="context-menu" id="ctxMenu">
+<div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item">✂ Cut<span style="margin-left:auto;font-size:10px;color:#858585;">⌘X</span></div>
   <div class="ctx-item">⎘ Copy<span style="margin-left:auto;font-size:10px;color:#858585;">⌘C</span></div>
   <div class="ctx-item sep">🔍 Go to Definition<span style="margin-left:auto;font-size:10px;color:#858585;">F12</span></div>
-  <div class="ctx-item" id="ctxHp"><span class="ctx-hp">⬤</span><span class="ctx-hp"> Add Hyperprobe Breakpoint…</span></div>
+  <div class="ctx-item sep" id="ctxHp"><span class="ctx-hp">⬤</span><span class="ctx-hp"> Add Hyperprobe Breakpoint…</span></div>
   <div class="ctx-item">🔖 Add Breakpoint<span style="margin-left:auto;font-size:10px;color:#858585;">F9</span></div>
 </div>
 
-<!-- BP FORM — line 34 -->
+<!-- BP FORM -->
 <div class="overlay" id="bpOverlay">
   <div class="bp-form">
     <div class="bp-form-header">
-      <div class="bp-form-title"><span style="color:#c0392b;">⬤</span> Add Hyperprobe Breakpoint — line 34</div>
-      <span class="bp-form-close" id="bpClose">✕</span>
+      <div class="bp-form-title"><span style="color:#c0392b;">⬤</span><span id="bpFormTitle">Add Hyperprobe Breakpoint — line 34</span></div>
+      <span class="bp-form-close" onclick="closeBpForm()">✕</span>
     </div>
     <div class="bp-form-body">
       <div class="bp-form-row">
-        <div class="bp-form-label">Condition <span class="bp-badge">optional</span></div>
-        <input class="bp-form-input" value="user.tier == 'free'">
-        <div class="bp-hint">Snapshot only fires when expression is true.</div>
+        <div class="bp-form-label">Condition <span class="bp-optional">optional</span></div>
+        <input class="bp-form-input" id="bpCondition" placeholder="e.g. user.tier == 'free' && balance == null">
+        <div class="bp-form-hint">Snapshot fires only when expression is true.</div>
       </div>
-      <div class="bp-form-row-2">
+      <div class="bp-form-2col">
         <div class="bp-form-row">
           <div class="bp-form-label">Hit Count</div>
           <input class="bp-form-input" value="1">
@@ -211,52 +310,16 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
       <div class="bp-form-row">
         <div class="bp-form-label">TTL</div>
         <input class="bp-form-input" value="30m">
-        <div class="bp-hint">Breakpoint auto-deactivates after this time.</div>
+        <div class="bp-form-hint">Breakpoint auto-deactivates after this time.</div>
       </div>
     </div>
     <div class="bp-form-footer">
-      <button class="bp-btn bp-btn-sec" id="bpCancel">Cancel</button>
-      <button class="bp-btn bp-btn-primary" id="bpActivate">Activate Breakpoint</button>
+      <button class="bp-btn bp-btn-sec" onclick="closeBpForm()">Cancel</button>
+      <button class="bp-btn bp-btn-primary" onclick="activateBp()">Activate Breakpoint</button>
     </div>
   </div>
 </div>
 
-<!-- BP FORM — line 31 -->
-<div class="overlay" id="bp2Overlay">
-  <div class="bp-form">
-    <div class="bp-form-header">
-      <div class="bp-form-title"><span style="color:#c0392b;">⬤</span> Add Hyperprobe Breakpoint — line 31</div>
-      <span class="bp-form-close" id="bp2Close">✕</span>
-    </div>
-    <div class="bp-form-body">
-      <div class="bp-form-row">
-        <div class="bp-form-label">Condition <span class="bp-badge">optional</span></div>
-        <input class="bp-form-input" placeholder="Leave blank to capture every hit" value="">
-        <div class="bp-hint">Capture DB state on every call to getConnection().</div>
-      </div>
-      <div class="bp-form-row-2">
-        <div class="bp-form-row">
-          <div class="bp-form-label">Hit Count</div>
-          <input class="bp-form-input" value="1">
-        </div>
-        <div class="bp-form-row">
-          <div class="bp-form-label">Rate Limit</div>
-          <input class="bp-form-input" value="5 / min">
-        </div>
-      </div>
-      <div class="bp-form-row">
-        <div class="bp-form-label">TTL</div>
-        <input class="bp-form-input" value="30m">
-      </div>
-    </div>
-    <div class="bp-form-footer">
-      <button class="bp-btn bp-btn-sec" id="bp2Cancel">Cancel</button>
-      <button class="bp-btn bp-btn-primary" id="bp2Activate">Activate Breakpoint</button>
-    </div>
-  </div>
-</div>
-
-<!-- VSCODE SHELL -->
 <div class="vscode">
   <div class="titlebar">
     <div class="titlebar-dots">
@@ -273,29 +336,68 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
     <div class="menu-item" style="color:#c0392b;font-weight:600;">Hyperprobe</div>
     <div class="menu-item">Help</div>
   </div>
+
   <div class="main">
+    <!-- ACTIVITY BAR -->
     <div class="activitybar">
+      <div class="activity-icon active" style="color:#c0392b;">⬤<div class="activity-badge" id="actBadge"></div></div>
       <div class="activity-icon">📁</div>
       <div class="activity-icon">🔍</div>
       <div class="activity-icon">⎇</div>
       <div class="activity-icon">🐛</div>
-      <div class="activity-icon active" style="color:#c0392b;">⬤<div class="activity-badge" id="actBadge"></div></div>
       <div class="activity-icon" style="margin-top:auto;margin-bottom:8px;">⚙</div>
     </div>
+
+    <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-header">Explorer</div>
-      <div class="file-tree">
-        <div class="file-item folder">📁 src/main/java</div>
-        <div class="file-item folder" style="padding-left:32px;">📁 com.payment.service</div>
-        <div class="file-item active" style="padding-left:44px;">☕ PaymentService.java</div>
-        <div class="file-item" style="padding-left:44px;">☕ BalanceService.java</div>
-        <div class="file-item" style="padding-left:44px;">☕ DBConnectionPool.java</div>
-        <div class="file-item" style="padding-left:44px;">☕ OrderHandler.java</div>
-        <div class="file-item folder" style="padding-left:32px;">📁 com.payment.model</div>
-        <div class="file-item" style="padding-left:44px;">☕ Order.java</div>
-        <div class="file-item" style="padding-left:44px;">☕ Balance.java</div>
+
+      <!-- Always-visible header -->
+      <div class="sidebar-header">
+        <span class="sidebar-dot"></span>
+        <span class="sidebar-name">Hyperprobe</span>
+        <span class="sidebar-badge">LIVE</span>
       </div>
+
+      <!-- Idle state (before AI is opened) -->
+      <div class="sidebar-idle" id="sidebarIdle">
+        <div class="idle-content">
+          <button class="btn-use-ai" onclick="openAI()">
+            <span style="font-size:12px;">⬤</span> Use AI to debug this
+          </button>
+          <div class="idle-divider">
+            <div class="idle-divider-line"></div>
+            <div class="idle-divider-text">or</div>
+            <div class="idle-divider-line"></div>
+          </div>
+          <div class="manual-hint-box">
+            <div class="manual-hint-title">Set breakpoints manually</div>
+            <div class="manual-hint-step"><span class="manual-hint-num">1.</span><span>Right-click any line in the editor</span></div>
+            <div class="manual-hint-step"><span class="manual-hint-num">2.</span><span>Select <span style="color:#c0392b;font-weight:600;">Add Hyperprobe Breakpoint…</span></span></div>
+            <div class="manual-hint-step"><span class="manual-hint-num">3.</span><span>Configure and activate. Repeat on more lines as needed.</span></div>
+          </div>
+        </div>
+        <!-- Manual BP list — shown once BPs are added -->
+        <div class="bp-sidebar-section" id="bpSidebarSection" style="display:none;">
+          <div class="bp-sidebar-hdr">Active Breakpoints <span class="bp-sidebar-count" id="bpCount">0</span></div>
+          <div class="bp-sidebar-list" id="bpSidebarList"></div>
+        </div>
+      </div>
+
+      <!-- AI chat (hidden until Use AI clicked) -->
+      <div class="ai-chat" id="aiChat">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chatInput" rows="1"
+            placeholder="Describe the incident…"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"></textarea>
+          <button class="chat-send" id="sendBtn" onclick="handleSend()">↵</button>
+        </div>
+      </div>
+
     </div>
+
+    <!-- EDITOR -->
     <div class="editor-area">
       <div class="tabbar">
         <div class="tab active">☕ PaymentService.java <span style="font-size:14px;color:#969696;margin-left:4px;">✕</span></div>
@@ -307,28 +409,26 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
           <div class="panel-tabs">
             <div class="panel-tab">Terminal</div>
             <div class="panel-tab">Problems</div>
-            <div class="panel-tab active">⬤ Hyperprobe <span class="panel-tab-badge" id="snapBadge">0</span></div>
+            <div class="panel-tab active">⬤ Hyperprobe Snapshots <span class="panel-tab-badge" id="snapBadge">0</span></div>
           </div>
           <div class="panel-content" id="panelContent"></div>
         </div>
       </div>
     </div>
   </div>
+
   <div class="statusbar">
     <div class="status-left">
-      <div class="status-item"><span class="status-dot"></span> main</div>
       <div class="status-item" id="statusBp">⬤ 0 breakpoints active</div>
       <div class="status-item" id="statusSnaps">📸 0 snapshots</div>
     </div>
     <div class="status-right">
       <div class="status-item">Java 17</div>
       <div class="status-item">production</div>
-      <div class="status-item">Ln 34, Col 1</div>
     </div>
   </div>
 </div>
 
-<!-- DEMO NAV — bottom left -->
 <div class="demo-nav">
   <div class="demo-step-label" id="stepLabel"></div>
   <div class="demo-dots" id="demoDots"></div>
@@ -336,176 +436,17 @@ html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monosp
 </div>
 
 <script>
-// ══════════════════════════════════════════
-// DATA
-// ══════════════════════════════════════════
-
-function mkVar(name, val, cls, note, children, expandId) {
-  return {name, val, cls, note, children, expandId};
-}
-
-// Snap 1 — line 34 (balance null) — variables per call stack frame
-const S1 = {
-  0: { // processPayment() frame
-    locals:[
-      mkVar('balance','null','null','← DB returned null silently'),
-      mkVar('amount','299.99','num'),
-      mkVar('userId','"usr_9182"','str'),
-      mkVar('order','Order {total:299.99, status:"PENDING", …}','obj',null,[
-        mkVar('total','299.99','num'),mkVar('status','"PENDING"','str'),
-        mkVar('userId','"usr_9182"','str'),mkVar('createdAt','"2024-03-12T14:23:19Z"','str')
-      ],'s1f0ord'),
-    ],
-    watch:[
-      {expr:'balance == null', val:'true', cls:'bool', bad:true},
-      {expr:'order.total > 0', val:'true', cls:'bool'},
-      {expr:'amount - balance', val:'NullPointerException', cls:'null'},
-    ],
-    closure:[
-      mkVar('this','PaymentService {ledger:…, dbPool:…}','obj',null,[
-        mkVar('ledger','LedgerService {…}','obj'),
-        mkVar('dbPool','HikariPool {active:5, max:5, waiting:12}','warn'),
-        mkVar('timeout','3000','num'),
-      ],'s1f0this'),
-    ]
-  },
-  1: { // handleRequest() frame
-    locals:[
-      mkVar('request','HttpRequest {method:"POST", path:"/pay"}','obj',null,[
-        mkVar('method','"POST"','str'),mkVar('path','"/pay"','str'),mkVar('headers','Headers {…}','obj')
-      ],'s1f1req'),
-      mkVar('orderId','"ord_4421"','str'),
-      mkVar('response','HttpResponse {status:null}','obj',null,[
-        mkVar('status','null','null'),mkVar('body','null','null')
-      ],'s1f1res'),
-    ],
-    watch:[
-      {expr:'balance == null', val:'true', cls:'bool', bad:true},
-      {expr:'order.total > 0', val:'true', cls:'bool'},
-      {expr:'amount - balance', val:'NullPointerException', cls:'null'},
-    ],
-    closure:[
-      mkVar('this','OrderHandler {service:PaymentService, …}','obj',null,[
-        mkVar('service','PaymentService {…}','obj'),
-        mkVar('logger','Logger {…}','obj'),
-      ],'s1f1this'),
-    ]
-  },
-  2: { // doFilter() frame
-    locals:[
-      mkVar('chain','FilterChain {…}','obj',null,[mkVar('filters','[AuthFilter, LogFilter]','obj')],'s1f2chain'),
-      mkVar('servletReq','ServletRequest {uri:"/api/payments"}','obj',null,[
-        mkVar('uri','"/api/payments"','str'),mkVar('method','"POST"','str')
-      ],'s1f2sreq'),
-      mkVar('startTime','1710252199438','num'),
-    ],
-    watch:[
-      {expr:'balance == null', val:'true', cls:'bool', bad:true},
-      {expr:'order.total > 0', val:'true', cls:'bool'},
-      {expr:'amount - balance', val:'NullPointerException', cls:'null'},
-    ],
-    closure:[
-      mkVar('this','RequestFilter {…}','obj',null,[mkVar('authService','AuthService {…}','obj')],'s1f2this'),
-    ]
-  },
-  3: { // execute() frame
-    locals:[
-      mkVar('req','HttpServletRequest {method:"POST"}','obj',null,[
-        mkVar('method','"POST"','str'),mkVar('requestURI','"/api/payments"','str')
-      ],'s1f3req'),
-      mkVar('resp','HttpServletResponse {status:200}','obj',null,[
-        mkVar('status','200','num'),mkVar('committed','false','bool')
-      ],'s1f3res'),
-    ],
-    watch:[
-      {expr:'balance == null', val:'true', cls:'bool', bad:true},
-      {expr:'order.total > 0', val:'true', cls:'bool'},
-      {expr:'amount - balance', val:'NullPointerException', cls:'null'},
-    ],
-    closure:[
-      mkVar('this','DispatcherServlet {…}','obj',null,[
-        mkVar('handlerMapping','RequestMappingHandlerMapping {…}','obj')
-      ],'s1f3this'),
-    ]
-  }
-};
-
-// Snap 2 — line 31 (DB conn null) — variables per call stack frame
-const S2 = {
-  0: { // processPayment() frame
-    locals:[
-      mkVar('conn','null','null','← pool timed out after 3000ms'),
-      mkVar('poolSize','5','num'),
-      mkVar('active','5','warn','← all slots occupied'),
-      mkVar('waiting','12','warn','← queued requests'),
-      mkVar('userId','"usr_9182"','str'),
-      mkVar('timeout','3000','num'),
-    ],
-    watch:[
-      {expr:'conn != null',       val:'false', cls:'bool', bad:true},
-      {expr:'active == poolSize', val:'true',  cls:'bool', bad:true},
-      {expr:'waiting > 0',        val:'true',  cls:'bool'},
-    ],
-    closure:[
-      mkVar('this','PaymentService {ledger:…, dbPool:…}','obj',null,[
-        mkVar('dbPool','HikariPool {active:5, max:5, waiting:12}','warn'),
-        mkVar('timeout','3000','num'),
-      ],'s2f0this'),
-    ]
-  },
-  1: {
-    locals:[
-      mkVar('request','HttpRequest {method:"POST", path:"/pay"}','obj',null,[
-        mkVar('method','"POST"','str'),mkVar('path','"/pay"','str')
-      ],'s2f1req'),
-      mkVar('orderId','"ord_4421"','str'),
-    ],
-    watch:[
-      {expr:'conn != null',       val:'false', cls:'bool', bad:true},
-      {expr:'active == poolSize', val:'true',  cls:'bool', bad:true},
-      {expr:'waiting > 0',        val:'true',  cls:'bool'},
-    ],
-    closure:[
-      mkVar('this','OrderHandler {…}','obj',null,[mkVar('service','PaymentService {…}','obj')],'s2f1this'),
-    ]
-  },
-  2: S1[2],
-  3: S1[3]
-};
-
-const SNAPS = [
-  {
-    id:1, line:34, fn:'processPayment()', time:'23:04:19.441',
-    summary:'balance = <span class="bad">null</span>',
-    frames: S1,
-    stack:[
-      {fn:'processPayment()', loc:'PaymentService.java', line:34},
-      {fn:'handleRequest()',  loc:'OrderHandler.java',   line:112},
-      {fn:'doFilter()',       loc:'RequestFilter.java',  line:67},
-      {fn:'execute()',        loc:'HttpServlet.java',    line:655},
-    ]
-  },
-  {
-    id:2, line:31, fn:'processPayment()', time:'23:04:19.389',
-    summary:'conn = <span class="bad">null</span>',
-    frames: S2,
-    stack:[
-      {fn:'processPayment()', loc:'PaymentService.java', line:31},
-      {fn:'handleRequest()',  loc:'OrderHandler.java',   line:112},
-      {fn:'doFilter()',       loc:'RequestFilter.java',  line:67},
-      {fn:'execute()',        loc:'HttpServlet.java',    line:655},
-    ]
-  }
-];
-
+// ════════════════════════════════════
+// CODE
+// ════════════════════════════════════
 const CODE = [
   {n:28, code:'<span class="cm">// Process payment for the given order</span>'},
   {n:29, code:'<span class="kw">@Override</span>'},
   {n:30, code:'<span class="kw">public</span> <span class="ty">PaymentResult</span> <span class="fn">processPayment</span>(<span class="ty">Order</span> <span class="va">order</span>) {'},
-  {n:31, code:'    <span class="ty">Connection</span> <span class="va">conn</span> = <span class="va">dbPool</span>.<span class="fn">getConnection</span>(<span class="va">timeout</span>);', bp2:true},
+  {n:31, code:'    <span class="ty">Connection</span> <span class="va">conn</span> = <span class="va">dbPool</span>.<span class="fn">getConnection</span>(<span class="va">timeout</span>);', lid:'line31'},
   {n:32, code:'    <span class="ty">String</span> <span class="va">userId</span> = <span class="va">order</span>.<span class="fn">getUserId</span>();'},
   {n:33, code:'    <span class="ty">double</span> <span class="va">amount</span> = <span class="va">order</span>.<span class="fn">getTotal</span>();'},
-  {n:34, code:'    <span class="ty">Balance</span> <span class="va">balance</span> = <span class="fn">getBalance</span>(<span class="va">userId</span>);', bp1:true},
+  {n:34, code:'    <span class="ty">Balance</span> <span class="va">balance</span> = <span class="fn">getBalance</span>(<span class="va">userId</span>);', lid:'line34'},
   {n:35, code:''},
   {n:36, code:'    <span class="kw">if</span> (<span class="va">balance</span> == <span class="kw">null</span> || <span class="va">balance</span>.<span class="prop">amount</span> &lt; <span class="va">amount</span>) {'},
   {n:37, code:'        <span class="kw">throw new</span> <span class="ty">InsufficientFundsException</span>();'},
@@ -516,262 +457,243 @@ const CODE = [
   {n:42, code:'    <span class="kw">return</span> <span class="ty">PaymentResult</span>.<span class="fn">success</span>();'},
 ];
 
-// ══════════════════════════════════════════
-// STATE
-// step: 0=idle, 1=bp1 waiting, 2=snap1, 3=bp2 waiting, 4=snap1+snap2
-// ══════════════════════════════════════════
-let step=0, feedIdx=0, frameIdx=0;
+// ════════════════════════════════════
+// SNAPSHOT DATA
+// ════════════════════════════════════
+const SNAP_DATA = {
+  line31: {
+    id:1, lineLabel:'line 31', fn:'processPayment()', time:'23:04:19.389', summary:'conn = null',
+    vars:`
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>Local Variables</div><div class="dbg-section-body">
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">conn</span><span class="dbg-eq">=</span><span class="dbg-val null">null</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← pool timed out after 3,000ms</span></div>
+        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">timeout</span><span class="dbg-eq">=</span><span class="dbg-val num">3000</span></div>
+        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">userId</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
+      </div></div>
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>DB State</div><div class="dbg-section-body">
+        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.active</span><span class="dbg-eq">=</span><span class="dbg-val warn">5 / 5 in use</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← exhausted</span></div>
+        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.waiting</span><span class="dbg-eq">=</span><span class="dbg-val warn">12 queued</span></div>
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">db.conn</span><span class="dbg-eq">=</span><span class="dbg-val null">timeout (3,000ms)</span></div>
+      </div></div>
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>User Context</div><div class="dbg-section-body">
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">user.tier</span><span class="dbg-eq">=</span><span class="dbg-val str">"free"</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← 89% of failures</span></div>
+      </div></div>`,
+    stack:[
+      {fn:'processPayment()',loc:'PaymentService.java',line:31,active:true},
+      {fn:'handleRequest()', loc:'OrderHandler.java',  line:112},
+      {fn:'doFilter()',       loc:'RequestFilter.java', line:67},
+      {fn:'execute()',        loc:'HttpServlet.java',   line:655},
+    ]
+  },
+  line34: {
+    id:2, lineLabel:'line 34', fn:'processPayment()', time:'23:04:19.441', summary:'balance = null',
+    vars:`
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>Local Variables</div><div class="dbg-section-body">
+        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">userId</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
+        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">amount</span><span class="dbg-eq">=</span><span class="dbg-val num">299.99</span></div>
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">balance</span><span class="dbg-eq">=</span><span class="dbg-val null">null</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← DB returned null silently</span></div>
+      </div></div>
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>DB State</div><div class="dbg-section-body">
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">db.conn</span><span class="dbg-eq">=</span><span class="dbg-val null">timeout (3,000ms)</span></div>
+        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.active</span><span class="dbg-eq">=</span><span class="dbg-val warn">5 / 5 in use</span></div>
+        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.waiting</span><span class="dbg-eq">=</span><span class="dbg-val warn">12 queued</span></div>
+      </div></div>
+      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>User Context</div><div class="dbg-section-body">
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">user.tier</span><span class="dbg-eq">=</span><span class="dbg-val str">"free"</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← 89% of failures</span></div>
+        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">user.id</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
+      </div></div>
+      <div class="dbg-section"><div class="dbg-section-hdr" onclick="toggleSection(this)"><span class="dbg-arrow">▶</span>Watch</div><div class="dbg-section-body" style="display:none;">
+        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name" style="color:#dcdcaa;font-style:italic;">balance == null</span><span class="dbg-eq">:</span><span class="dbg-val bool">true</span></div>
+        <div class="dbg-add-watch">+ Add expression…</div>
+      </div></div>`,
+    stack:[
+      {fn:'processPayment()',loc:'PaymentService.java',line:34,active:true},
+      {fn:'handleRequest()', loc:'OrderHandler.java',  line:112},
+      {fn:'doFilter()',       loc:'RequestFilter.java', line:67},
+      {fn:'execute()',        loc:'HttpServlet.java',   line:655},
+    ]
+  }
+};
 
-// ── RENDER CODE ──
+// ════════════════════════════════════
+// STATE
+// ════════════════════════════════════
+let aiOpen = false;          // has dev clicked "Use AI"
+let aiStep = 0;              // 0-6 drives AI chat flow
+let aiInputLocked = false;
+const chatMsgList = [];
+
+// Manual breakpoints (works regardless of aiOpen)
+let manualBPs = [];          // [{lid, lineNum, condition}]
+let manualSnaps = [];        // [lid] order fired
+
+// All snapshots for bottom panel (merges AI + manual)
+let selectedSnap = 0;
+
+// Context menu target
+let ctxTarget = null;
+
+// ════════════════════════════════════
+// SIDEBAR: open AI chat
+// ════════════════════════════════════
+function openAI() {
+  aiOpen = true;
+  document.getElementById('sidebarIdle').style.display = 'none';
+  document.getElementById('aiChat').classList.add('open');
+  renderNav();
+}
+
+// ════════════════════════════════════
+// RENDER CODE
+// ════════════════════════════════════
 function renderCode() {
   document.getElementById('codeContent').innerHTML = CODE.map(L => {
-    const bp1on = L.bp1 && step>=1;
-    const bp2on = L.bp2 && step>=3;
-    let cls = 'code-line' + (bp1on||bp2on ? ' bp-line' : '');
-    let gutter = '<span class="line-gutter"></span>';
-    let ghost = '';
-    let ctx = 'oncontextmenu="event.preventDefault()"';
+    if (!L.lid) {
+      return `<div class="code-line" oncontextmenu="event.preventDefault()"><span class="line-gutter"></span><span class="line-num">${L.n}</span><span class="line-code">${L.code}</span></div>`;
+    }
 
-    if (L.bp1) {
-      if (bp1on) {
-        gutter = `<span class="line-gutter"><span class="bp-dot"></span></span>`;
-        if (step===1) ghost = `<span class="inline-ghost">// ⬤ active · user.tier=='free' · 29:58</span>`;
-        if (step>=2) ghost = `<span class="inline-ghost">// ⬤ ${step>=4?'2 snapshots':'1 snapshot'} captured</span>`;
-      } else {
-        ctx = 'oncontextmenu="showCtx(event)"';
-      }
-    }
-    if (L.bp2 && bp2on) {
+    // Determine state for this line
+    const aiProposed = aiOpen && aiStep === 2;
+    const aiActive   = aiOpen && aiStep >= 3;
+    const manBP      = manualBPs.find(b => b.lid === L.lid);
+    const manSnapped = manualSnaps.includes(L.lid);
+
+    // AI snaps
+    const aiSnap31 = aiOpen && aiStep >= 4 && L.lid === 'line31';
+    const aiSnap34 = aiOpen && aiStep >= 5 && L.lid === 'line34';
+    const aiWait34 = aiOpen && aiStep === 4 && L.lid === 'line34';
+
+    const isActive = aiActive || !!manBP;
+    const cls = 'code-line' + (isActive ? (L.lid==='line34' ? ' bp-line' : ' bp-line2') : '');
+
+    let gutter = `<span class="line-gutter"></span>`;
+    let ghost  = '';
+    const ctx  = `oncontextmenu="showCtx(event,'${L.lid}',${L.n})"`;
+
+    // Gutter dot
+    if (aiProposed && !manBP) {
+      gutter = `<span class="line-gutter"><span class="bp-dot-proposed"></span></span>`;
+    } else if (isActive) {
       gutter = `<span class="line-gutter"><span class="bp-dot"></span></span>`;
-      if (step===3) ghost = `<span class="inline-ghost">// ⬤ active · capturing…</span>`;
-      if (step>=4)  ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
     }
+
+    // Ghost text — AI takes priority over manual for same line
+    if (aiProposed && !manBP)  ghost = `<span class="inline-ghost">// AI proposed · pending approval</span>`;
+    else if (aiActive && !aiSnap31 && !aiSnap34 && !aiWait34 && aiStep===3) ghost = `<span class="inline-ghost">// ⬤ active · waiting…</span>`;
+    else if (aiSnap31)         ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
+    else if (aiWait34)         ghost = `<span class="inline-ghost">// ⬤ active · waiting…</span>`;
+    else if (aiSnap34)         ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
+    else if (manBP && manSnapped) ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
+    else if (manBP)            ghost = `<span class="inline-ghost">// ⬤ active · ${manBP.condition||'waiting…'}</span>`;
 
     return `<div class="${cls}" ${ctx}>${gutter}<span class="line-num">${L.n}</span><span class="line-code">${L.code}${ghost}</span></div>`;
   }).join('');
 }
 
-// ── RENDER PANEL ──
+// ════════════════════════════════════
+// RENDER BOTTOM PANEL
+// ════════════════════════════════════
+function allSnapKeys() {
+  const keys = [];
+  // AI snaps first (in order)
+  if (aiOpen && aiStep >= 4) keys.push('line31');
+  if (aiOpen && aiStep >= 5) keys.push('line34');
+  // Manual snaps (deduplicated)
+  manualSnaps.forEach(k => { if (!keys.includes(k)) keys.push(k); });
+  return keys;
+}
+
 function renderPanel() {
-  const p = document.getElementById('panelContent');
+  const pc = document.getElementById('panelContent');
 
-  if (step===0) {
-    p.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#555;padding:20px;text-align:center;">
-      <div style="font-size:24px;color:#c0392b;">⬤</div>
-      <div style="font-size:13px;color:#858585;">No breakpoints active.</div>
-      <div style="font-size:11px;line-height:1.8;max-width:280px;">Right-click any line and select <span style="color:#c0392b;font-weight:600;">Add Hyperprobe Breakpoint…</span></div>
-    </div>`; return;
+  // Count active BPs
+  const bpCount = (aiOpen && aiStep >= 3 ? 2 : 0) + manualBPs.length;
+  const snapKeys = allSnapKeys();
+  const hasSnaps = snapKeys.length > 0;
+
+  // Nothing active
+  if (bpCount === 0) {
+    pc.innerHTML = `
+      <div class="snapshot-feed"><div class="feed-header">Snapshots</div>
+        <div class="feed-empty">📸<br><br>No snapshots yet.<br>Use AI or right-click a<br>line to add a breakpoint.</div>
+      </div>
+      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2.2;">Activate breakpoints<br>to capture runtime state.</div>`;
+    return;
   }
 
-  if (step===1) {
-    p.innerHTML = `
-      <div class="snapshot-feed">
-        <div class="feed-header">Snapshots <span class="feed-action">Clear</span></div>
-        <div class="feed-waiting">
-          <div class="waiting-spinner"></div>
-          <div>Breakpoint active · line 34</div>
-          <div style="color:#6a9955;font-size:10px;margin-top:4px;">Condition: user.tier == 'free'<br>TTL: 29:58 · Rate: 10/min</div>
-        </div>
+  // BPs active but no snaps yet
+  if (!hasSnaps) {
+    const txt = bpCount === 2 ? '2 breakpoints active<br>lines 31 &amp; 34' : `${bpCount} breakpoint${bpCount>1?'s':''} active`;
+    pc.innerHTML = `
+      <div class="snapshot-feed"><div class="feed-header">Snapshots</div>
+        <div class="feed-waiting"><div class="waiting-spinner"></div><div>${txt}<br><br>Waiting for next request…</div></div>
       </div>
-      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;">
-        <div style="text-align:center;color:#555;font-size:11px;line-height:1.8;"><div style="font-size:20px;margin-bottom:6px;">📸</div>Waiting for next matching request…</div>
-      </div>`; return;
+      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2.2;">Snapshot fires on next<br>matching request.</div>`;
+    return;
   }
 
-  // Step 3: snap1 in feed + bp2 waiting below
-  if (step===3) {
-    p.innerHTML = `
-      <div class="snapshot-feed">
-        <div class="feed-header">Snapshots <span class="feed-action">Clear</span></div>
-        <div class="feed-list">${feedItem(SNAPS[0],0,true)}</div>
-        <div class="feed-waiting" style="padding:14px 12px;">
-          <div class="waiting-spinner"></div>
-          <div style="font-size:10px;">BP2 active · line 31<br>Waiting for next request…</div>
-        </div>
-      </div>
-      ${detailHtml(SNAPS[0], 0)}`;
-    wireListeners(); return;
-  }
-
-  // Steps 2 and 4: full debugger
-  const visSnaps = step>=4 ? SNAPS : [SNAPS[0]];
-  const si = Math.min(feedIdx, visSnaps.length-1);
-  p.innerHTML = `
-    <div class="snapshot-feed">
-      <div class="feed-header">Snapshots <span class="feed-action">Clear</span></div>
-      <div class="feed-list">${visSnaps.map((s,i)=>feedItem(s,i,i===si)).join('')}</div>
-    </div>
-    ${detailHtml(visSnaps[si], frameIdx)}`;
-  wireListeners();
-}
-
-function feedItem(s, idx, active) {
-  return `<div class="feed-item ${active?'active':''}" data-fi="${idx}">
-    <div class="feed-item-top"><span class="feed-item-line">line ${s.line}</span><span class="feed-item-time">${s.time}</span></div>
-    <div class="feed-item-fn">${s.fn}</div>
-    <div class="feed-item-summary">${s.summary}</div>
-  </div>`;
-}
-
-function detailHtml(s, fi) {
-  const fd = s.frames[fi];
-  return `<div class="snapshot-detail">
-    <div class="detail-header">
-      <div class="detail-title"><span class="detail-badge">SNAPSHOT #${s.id}</span>${s.fn} · line ${s.line}</div>
-      <div class="detail-meta"><span>${s.time}</span><span>http-nio-8080-exec-3</span></div>
-    </div>
-    <div class="detail-body">
-      <div class="vars-pane">
-        ${sectionHtml('Local Variables', fd.locals, true)}
-        ${watchHtml(fd.watch)}
-        ${sectionHtml('Closure', fd.closure, false)}
-      </div>
-      <div class="stack-pane">
-        <div class="pane-title">Call Stack</div>
-        ${s.stack.map((f,i)=>`<div class="stack-frame ${i===fi?'active':''}" data-fri="${i}">
-          <div class="stack-fn">${f.fn}</div>
-          <div class="stack-loc">${f.loc} · <span>line ${f.line}</span></div>
-        </div>`).join('')}
-      </div>
-    </div>
-  </div>`;
-}
-
-function sectionHtml(title, vars, open) {
-  return `<div class="dbg-section">
-    <div class="dbg-section-hdr ${open?'open':''}" onclick="toggleSection(this)">
-      <span class="dbg-arrow">${open?'▾':'▶'}</span>${title}
-    </div>
-    <div class="dbg-section-body" ${open?'':'style="display:none;"'}>
-      ${vars.map(v=>varHtml(v)).join('')}
-    </div>
-  </div>`;
-}
-
-function watchHtml(watch) {
-  return `<div class="dbg-section">
-    <div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>Watch</div>
-    <div class="dbg-section-body">
-      ${watch.map(w=>`<div class="dbg-row ${w.bad?'bad':''}">
-        <span class="dbg-expand"></span>
-        <span class="dbg-name dbg-watch-expr">${w.expr}</span>
-        <span class="dbg-eq">:</span>
-        <span class="dbg-val ${w.cls}">${w.val}</span>
-      </div>`).join('')}
-      <div class="dbg-add-watch"><span style="color:#569cd6;font-size:14px;">+</span> Add expression…</div>
-    </div>
-  </div>`;
-}
-
-function varHtml(v) {
-  const badCls = v.cls==='null'?'bad':v.cls==='warn'?'warn':'';
-  if (v.children) {
-    return `<div class="dbg-row expandable ${badCls}" onclick="toggleObj('${v.expandId}')">
-        <span class="dbg-expand">▶</span>
-        <span class="dbg-name">${v.name}</span><span class="dbg-eq">:</span>
-        <span class="dbg-val obj">${v.val}</span>
-      </div>
-      <div id="${v.expandId}" style="display:none;">
-        ${v.children.map(c=>`<div class="dbg-row child ${c.cls==='null'?'bad':c.cls==='warn'?'warn':''}">
-          <span class="dbg-expand"></span>
-          <span class="dbg-name">${c.name}</span><span class="dbg-eq">:</span>
-          <span class="dbg-val ${c.cls}">${c.val}</span>
-        </div>`).join('')}
-      </div>`;
-  }
-  return `<div class="dbg-row ${badCls}">
-    <span class="dbg-expand"></span>
-    <span class="dbg-name">${v.name}</span><span class="dbg-eq">:</span>
-    <span class="dbg-val ${v.cls}">${v.val}</span>
-    ${v.note?`<span style="font-size:10px;color:#6a9955;font-style:italic;margin-left:8px;">${v.note}</span>`:''}
-  </div>`;
-}
-
-function wireListeners() {
-  document.querySelectorAll('[data-fi]').forEach(el=>el.addEventListener('click',()=>{
-    feedIdx=parseInt(el.dataset.fi); frameIdx=0; renderPanel();
-  }));
-  document.querySelectorAll('[data-fri]').forEach(el=>el.addEventListener('click',()=>{
-    frameIdx=parseInt(el.dataset.fri); renderPanel();
-  }));
-}
-
-// ── RENDER NAV ──
-function renderNav() {
-  const labels = [
-    'Step 1 of 3 — Right-click line 34 to set a breakpoint',
-    'Step 2 of 3 — Breakpoint active, waiting for request',
-    'Step 3 of 3 — Snapshot captured',
-    'Bonus — Second breakpoint active on line 31…',
-    'Bonus — Two snapshots captured'
-  ];
-  document.getElementById('stepLabel').textContent = labels[step] || '';
-
-  const dotCount = step >= 3 ? 4 : 3;
-  const activeDot = Math.min(step, 3);
-  document.getElementById('demoDots').innerHTML = Array.from({length:dotCount},(_,i)=>
-    `<div class="demo-dot ${i===activeDot?'active':''}" onclick="if(${i}<=step||${i}===0){step=${i};feedIdx=0;frameIdx=0;renderAll();}"></div>`
+  const stillWaiting = aiOpen && aiStep === 4; // snap1 done, snap2 pending
+  const sel = Math.min(selectedSnap, snapKeys.length - 1);
+  const snap = SNAP_DATA[snapKeys[sel]];
+  const stackHTML = snap.stack.map(f =>
+    `<div class="stack-frame ${f.active?'active':''}"><div class="stack-fn">${f.fn}</div><div class="stack-loc">${f.loc} · <span>line ${f.line}</span></div></div>`
   ).join('');
 
-  let btns = '';
-  if (step===0) {
-    btns = `<button class="demo-btn primary" onclick="showCtxDemo()">Next: right-click line 34 →</button>`;
-  } else if (step===1) {
-    btns = `<button class="demo-btn ghost" onclick="prev()">← Back</button>
-            <button class="demo-btn primary" onclick="next()">Next: snapshot fires →</button>`;
-  } else if (step===2) {
-    btns = `<button class="demo-btn ghost" onclick="prev()">← Back</button>
-            <button class="demo-btn ghost" onclick="restart()">↺ Restart</button>
-            <button class="demo-btn primary" onclick="addBp2()">+ Add Breakpoint on line 31</button>`;
-  } else if (step===3 || step===4) {
-    btns = `<button class="demo-btn ghost" onclick="restart()">↺ Restart</button>`;
-  }
-  document.getElementById('demoBtns').innerHTML = btns;
+  pc.innerHTML = `
+    <div class="snapshot-feed">
+      <div class="feed-header">Snapshots</div>
+      <div class="feed-list">
+        ${snapKeys.map((k, i) => { const s=SNAP_DATA[k]; return `
+          <div class="feed-item ${i===sel?'sel':''}" onclick="selectSnap(${i})">
+            <div class="fi-top"><span class="fi-line">${s.lineLabel}</span><span class="fi-time">${s.time}</span></div>
+            <div class="fi-fn">${s.fn}</div>
+            <div class="fi-summary"><span class="bad">${s.summary}</span></div>
+          </div>`; }).join('')}
+      </div>
+      ${stillWaiting ? `<div class="feed-waiting" style="padding:10px 12px;"><div class="waiting-spinner"></div><div style="font-size:10px;color:#6a9955;">Line 31 ✓ &nbsp;·&nbsp; Line 34 waiting…</div></div>` : ''}
+    </div>
+    <div class="snapshot-detail">
+      <div class="detail-header">
+        <div class="detail-title"><span class="detail-badge">SNAPSHOT #${snap.id}</span>${snap.fn} · ${snap.lineLabel}</div>
+        <div class="detail-meta"><span>${snap.time} UTC</span><span>http-nio-8080-exec-3</span></div>
+      </div>
+      <div class="detail-body">
+        <div class="vars-pane">${snap.vars}</div>
+        <div class="stack-pane"><div class="pane-title">Call Stack</div>${stackHTML}</div>
+      </div>
+    </div>`;
 }
 
+function selectSnap(i) { selectedSnap = i; renderPanel(); }
+
+// ════════════════════════════════════
+// STATUS BAR
+// ════════════════════════════════════
 function renderStatus() {
-  const bps  = step>=3?2:step>=1?1:0;
-  const snps = step>=4?2:step>=2?1:0;
+  const bps  = (aiOpen && aiStep >= 3 ? 2 : 0) + manualBPs.length;
+  const snps = allSnapKeys().length;
   document.getElementById('statusBp').textContent    = `⬤ ${bps} breakpoint${bps!==1?'s':''} active`;
   document.getElementById('statusSnaps').textContent = `📸 ${snps} snapshot${snps!==1?'s':''}`;
   document.getElementById('snapBadge').textContent   = snps;
-  document.getElementById('actBadge').style.display  = snps>0?'block':'none';
+  document.getElementById('actBadge').style.display  = snps > 0 ? 'block' : 'none';
 }
 
-function renderAll() { renderCode(); renderPanel(); renderNav(); renderStatus(); }
-
-function next()    { if(step<2){step++;renderAll();} }
-function prev()    { if(step>0){step--;feedIdx=0;frameIdx=0;renderAll();} }
-function restart() { step=0;feedIdx=0;frameIdx=0;renderAll(); }
-
-function addBp2() { document.getElementById('bp2Overlay').classList.add('visible'); }
-
-// helper: auto-show ctx menu in the right place for step 0 "Next" button
-function showCtxDemo() {
-  const line = document.querySelector('.code-line.bp-line');
-  if (line) {
-    const r = line.getBoundingClientRect();
-    const m = document.getElementById('ctxMenu');
-    m.style.left = (r.left+60)+'px';
-    m.style.top  = (r.top+4)+'px';
-    m.classList.add('visible');
-  }
-}
-
-function showCtx(e) {
-  if (step!==0) return;
+// ════════════════════════════════════
+// MANUAL BREAKPOINTS
+// ════════════════════════════════════
+function showCtx(e, lid, lineNum) {
   e.preventDefault();
+  ctxTarget = { lid, lineNum };
+  document.getElementById('bpFormTitle').textContent = `Add Hyperprobe Breakpoint — line ${lineNum}`;
+  document.getElementById('bpCondition').value = lid==='line34' ? "user.tier == 'free'" : '';
   const m = document.getElementById('ctxMenu');
-  m.style.left = e.clientX+'px';
-  m.style.top  = e.clientY+'px';
+  m.style.left = e.clientX+'px'; m.style.top = e.clientY+'px';
   m.classList.add('visible');
 }
 
-document.addEventListener('click', e=>{
+document.addEventListener('click', e => {
   const m = document.getElementById('ctxMenu');
   if (m.classList.contains('visible')) {
-    const item = e.target.closest('.ctx-item');
-    if (item && item.id==='ctxHp') {
+    if (e.target.closest('#ctxHp')) {
       m.classList.remove('visible');
       document.getElementById('bpOverlay').classList.add('visible');
       return;
@@ -780,22 +702,249 @@ document.addEventListener('click', e=>{
   }
 });
 
-// bp1 form
-document.getElementById('bpClose').onclick   = ()=>document.getElementById('bpOverlay').classList.remove('visible');
-document.getElementById('bpCancel').onclick  = ()=>document.getElementById('bpOverlay').classList.remove('visible');
-document.getElementById('bpActivate').onclick = ()=>{
-  document.getElementById('bpOverlay').classList.remove('visible');
-  step=1; renderAll();
-};
+function closeBpForm() { document.getElementById('bpOverlay').classList.remove('visible'); }
 
-// bp2 form — step 3, then after 2s step 4
-document.getElementById('bp2Close').onclick   = ()=>document.getElementById('bp2Overlay').classList.remove('visible');
-document.getElementById('bp2Cancel').onclick  = ()=>document.getElementById('bp2Overlay').classList.remove('visible');
-document.getElementById('bp2Activate').onclick = ()=>{
-  document.getElementById('bp2Overlay').classList.remove('visible');
-  step=3; feedIdx=0; frameIdx=0; renderAll();
-  setTimeout(()=>{ step=4; feedIdx=1; frameIdx=0; renderAll(); }, 2000);
-};
+function activateBp() {
+  if (!ctxTarget) return;
+  const cond = document.getElementById('bpCondition').value.trim();
+  if (!manualBPs.find(b => b.lid === ctxTarget.lid)) {
+    manualBPs.push({ lid: ctxTarget.lid, lineNum: ctxTarget.lineNum, condition: cond });
+  }
+  closeBpForm();
+  renderBPSidebar();
+  renderCode(); renderPanel(); renderStatus(); renderNav();
+
+  // Auto-fire snapshot after 2.5s
+  const lid = ctxTarget.lid;
+  setTimeout(() => {
+    if (!manualSnaps.includes(lid)) {
+      manualSnaps.push(lid);
+      selectedSnap = allSnapKeys().length - 1;
+      renderCode(); renderPanel(); renderStatus(); renderNav();
+    }
+  }, 2500);
+}
+
+function renderBPSidebar() {
+  const sec = document.getElementById('bpSidebarSection');
+  if (!sec) return;
+  if (manualBPs.length === 0) { sec.style.display='none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('bpCount').textContent = manualBPs.length;
+  document.getElementById('bpSidebarList').innerHTML = manualBPs.map(bp => {
+    const snapped = manualSnaps.includes(bp.lid);
+    return `<div class="bp-sidebar-item">
+      <span class="bpi-dot"></span>
+      <div class="bpi-info">
+        <div class="bpi-line">line ${bp.lineNum}</div>
+        <div class="bpi-fn">${bp.lid==='line31'?'dbPool.getConnection()':'getBalance(userId)'}</div>
+        ${bp.condition?`<div class="bpi-cond">${bp.condition}</div>`:''}
+      </div>
+      <span class="bpi-status ${snapped?'bpi-captured':'bpi-waiting'}">${snapped?'CAPTURED':'WAITING'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════
+// AI CHAT
+// ════════════════════════════════════
+function addMsg(who, html) {
+  chatMsgList.push({ who, html });
+  document.getElementById('chatMessages').innerHTML = chatMsgList.map(m => {
+    const u = m.who==='dev';
+    return `<div class="msg ${u?'msg-dev':''}">
+      <div class="avatar ${u?'avatar-dev':'avatar-ai'}">${u?'DEV':'AI'}</div>
+      <div class="bubble ${u?'bubble-dev':'bubble-ai'}">${m.html}</div>
+    </div>`;
+  }).join('');
+  setTimeout(() => {
+    const cm = document.getElementById('chatMessages');
+    if (cm) cm.scrollTop = cm.scrollHeight;
+  }, 40);
+}
+
+function showTyping() {
+  const cm = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className='msg'; el.id='typingRow';
+  el.innerHTML=`<div class="avatar avatar-ai">AI</div><div class="bubble bubble-ai"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  cm.appendChild(el);
+  setTimeout(()=>{ cm.scrollTop=cm.scrollHeight; }, 40);
+}
+
+function hideTyping() { const el=document.getElementById('typingRow'); if(el)el.remove(); }
+function lockInput()   { aiInputLocked=true;  document.getElementById('sendBtn').disabled=true;  document.getElementById('chatInput').disabled=true;  document.getElementById('chatInput').placeholder='Waiting…'; }
+function unlockInput() { aiInputLocked=false; document.getElementById('sendBtn').disabled=false; document.getElementById('chatInput').disabled=false; document.getElementById('chatInput').placeholder='Ask a follow-up…'; }
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();} }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,72)+'px'; }
+
+function handleSend() {
+  if (aiInputLocked) return;
+  const inp = document.getElementById('chatInput');
+  const val = inp.value.trim(); if (!val) return;
+  inp.value=''; inp.style.height='auto';
+
+  if (aiStep===0) {
+    addMsg('dev', val); lockInput();
+    aiStep=1; renderAll();
+    setTimeout(()=>showTyping(), 400);
+    setTimeout(()=>{
+      hideTyping();
+      addMsg('ai', proposalHTML());
+      aiStep=2; renderAll();
+      setTimeout(wireApprove, 50);
+    }, 2200);
+  } else if (aiStep>=6) {
+    addMsg('dev', val);
+    setTimeout(()=>showTyping(), 300);
+    setTimeout(()=>{ hideTyping(); addMsg('ai', followupReply(val)); }, 1400);
+  }
+}
+
+function wireApprove() {
+  const btn=document.getElementById('approveBtn');
+  if(btn&&!btn._wired){btn._wired=true;btn.onclick=handleApprove;}
+}
+
+function proposalHTML() {
+  return `Checked the Safety Map for <code>payment-service v2.4.1</code>. Two highest-risk nodes:
+
+<div class="bp-proposal">
+  <div class="bp-proposal-item">
+    <div><span class="bpi-label">Line 31 —</span><span class="bpi-fn-name">dbPool.getConnection(timeout)</span></div>
+    <div class="bpi-reason">New DB call in this release. If pool is saturated this times out and returns null — silently.</div>
+  </div>
+  <div class="bp-proposal-item">
+    <div><span class="bpi-label">Line 34 —</span><span class="bpi-fn-name">getBalance(userId)</span></div>
+    <div class="bpi-reason">Returns null on DB timeout. Caller treats null as zero balance → throws wrong InsufficientFunds error.</div>
+  </div>
+</div>
+
+Non-breaking breakpoints on both lines — no redeploy, zero production impact.
+
+<div class="bp-actions">
+  <button class="btn-approve" id="approveBtn">✓ Approve &amp; Activate</button>
+  <button class="btn-dismiss" onclick="handleDismiss()">Dismiss</button>
+</div>`;
+}
+
+function handleApprove() {
+  const btn=document.getElementById('approveBtn');
+  if(btn){btn.disabled=true;btn.textContent='✓ Approved';}
+  const dis=btn&&btn.nextElementSibling; if(dis)dis.style.display='none';
+  addMsg('dev','Approved.');
+  aiStep=3; renderAll();
+  setTimeout(()=>{ addMsg('ai',`<div class="chat-waiting"><div class="chat-spinner"></div>2 breakpoints live on lines 31 &amp; 34. Waiting for next request…</div>`); }, 400);
+  setTimeout(()=>{ aiStep=4; selectedSnap=0; renderAll(); }, 2500);
+  setTimeout(()=>{ aiStep=5; selectedSnap=1; renderAll(); }, 4500);
+  setTimeout(()=>{ aiStep=6; addMsg('ai', diagnosisHTML()); unlockInput(); renderAll(); }, 6000);
+}
+
+function handleDismiss() {
+  addMsg('dev','Dismissed.');
+  addMsg('ai','No problem. Describe the incident in more detail or point me to a specific function and I\'ll try again.');
+}
+
+const FOLLOWUPS = [
+  {match:['why free','free tier'],  reply:'Free-tier users share a single HikariCP pool capped at 5 connections. Paid-tier has its own pool of 20. The cap was set at launch and never revisited as free-tier traffic grew.'},
+  {match:['how fix','fix this'],    reply:'Two steps: (1) Increase <code>db.pool.free.max</code> to 20. (2) In <code>getBalance()</code>, throw an explicit <code>DBTimeoutException</code> instead of returning null on timeout.'},
+  {match:['which user','how many'], reply:'89% of the 847 failures were <code>user.tier=\'free\'</code>. Zero paid-tier users were affected at any point.'},
+  {match:['redeploy','restart'],    reply:'No redeploy needed. Hyperprobe sets breakpoints directly on the running JVM — zero downtime, zero pipeline involvement.'},
+];
+
+function followupReply(q) {
+  const lower=q.toLowerCase();
+  const m=FOLLOWUPS.find(f=>f.match.some(k=>lower.includes(k)));
+  return m ? m.reply : `Based on both snapshots the runtime state is clear — free-tier DB pool exhaustion, paid-tier completely unaffected. What else do you want to dig into?`;
+}
+
+function diagnosisHTML() {
+  return `Both snapshots captured. Here's what the runtime state shows:
+
+<div class="snap-summary">
+  <div class="snap-summary-hdr"><span class="snap-summary-title">⬤ Snapshot #1 · line 31</span><span class="snap-summary-sub">23:04:19.389</span></div>
+  <div class="snap-summary-rows">
+    <span class="snap-sec">DB State</span>
+    <div class="snap-row hl"><span class="sr-k">db.pool.active</span><span class="sr-e">=</span><span class="sr-warn">5 / 5 in use</span><span class="sr-note">← exhausted</span></div>
+    <div class="snap-row hl"><span class="sr-k">conn</span><span class="sr-e">=</span><span class="sr-bad">null</span><span class="sr-note">← timed out 3,000ms</span></div>
+  </div>
+</div>
+
+<div class="snap-summary">
+  <div class="snap-summary-hdr"><span class="snap-summary-title">⬤ Snapshot #2 · line 34</span><span class="snap-summary-sub">23:04:19.441</span></div>
+  <div class="snap-summary-rows">
+    <span class="snap-sec">Local Variables</span>
+    <div class="snap-row hl"><span class="sr-k">balance</span><span class="sr-e">=</span><span class="sr-bad">null</span><span class="sr-note">← DB returned null</span></div>
+    <span class="snap-sec">User Context</span>
+    <div class="snap-row hl"><span class="sr-k">user.tier</span><span class="sr-e">=</span><span class="sr-info">"free"</span><span class="sr-note">← 89% of failures</span></div>
+  </div>
+</div>
+
+<div class="rca-block">
+  <div class="rca-block-hdr">Root Cause · INC-20240312-0047 · MTTR 9 min</div>
+  <div class="rca-row"><span class="rca-lbl lbl-cause">CAUSE</span><span class="rca-val">Free-tier HikariCP pool saturated (5/5, 12 queued). <code>getConnection()</code> → <code>null</code> → <code>getBalance()</code> → <code>null</code> → wrong <code>InsufficientFunds</code>. 89% of 847 failures = free-tier.</span></div>
+  <div class="rca-row"><span class="rca-lbl lbl-scope">SCOPE</span><span class="rca-val">Free-tier only. Paid-tier pool (20 slots) completely unaffected.</span></div>
+  <div class="rca-row"><span class="rca-lbl lbl-fix">FIX</span><span class="rca-val">Increase free-tier pool 5→20. Raise explicit <code>DBTimeoutException</code> on timeout. Add circuit breaker at &gt;80% pool usage.</span></div>
+</div>
+
+Any questions?`;
+}
+
+// ════════════════════════════════════
+// NAV
+// ════════════════════════════════════
+function renderNav() {
+  const snaps = allSnapKeys().length;
+  const bps   = (aiOpen&&aiStep>=3?2:0)+manualBPs.length;
+
+  let label='', dotCount=1, activeDot=0, btns='';
+
+  if (aiOpen) {
+    const labels=[
+      'AI chat open — describe the incident. Press Enter or click Next.',
+      'AI is analysing the codebase…',
+      'AI proposed 2 breakpoints. Click "Approve & Activate" in the chat.',
+      'Breakpoints live on lines 31 & 34. Waiting… (auto)',
+      'Snapshot 1 fired on line 31. Waiting for line 34… (auto)',
+      'Both snapshots captured. Click between them in the feed.',
+      'AI diagnosis posted. Ask any follow-up questions.',
+    ];
+    label = labels[aiStep]||'';
+    dotCount=7; activeDot=aiStep;
+    if (aiStep===0) btns=`<button class="demo-btn primary" onclick="demoSend()">Next: Send message →</button>`;
+    else btns=`<button class="demo-btn ghost" onclick="restart()">↺ Restart</button>`;
+  } else {
+    if (bps===0&&snaps===0) label='Right-click line 31 or 34 to add a breakpoint manually — or click "Use AI to debug this" in the sidebar.';
+    else if (snaps===0)     label=`${bps} breakpoint${bps>1?'s':''} active. Waiting for snapshot${bps>1?'s':''}…`;
+    else                    label=`${snaps} snapshot${snaps>1?'s':''} captured. Click between them in the panel below.`;
+    dotCount=3; activeDot=bps===0?0:snaps===0?1:2;
+    btns=`<button class="demo-btn ghost" onclick="restart()">↺ Restart</button>`;
+  }
+
+  document.getElementById('stepLabel').textContent=label;
+  document.getElementById('demoDots').innerHTML=Array.from({length:dotCount},(_,i)=>
+    `<div class="demo-dot ${i===activeDot?'active':''}"></div>`).join('');
+  document.getElementById('demoBtns').innerHTML=btns;
+}
+
+function demoSend() {
+  const inp=document.getElementById('chatInput');
+  inp.value='Payment failures on prod. 847 errors in the last 10 min. Balance check seems to hang — users hitting InsufficientFunds but they have money.';
+  autoResize(inp); handleSend();
+}
+
+function restart() {
+  aiOpen=false; aiStep=0; aiInputLocked=false;
+  chatMsgList.length=0;
+  manualBPs=[]; manualSnaps=[]; selectedSnap=0; ctxTarget=null;
+  document.getElementById('sidebarIdle').style.display='flex';
+  document.getElementById('aiChat').classList.remove('open');
+  const inp=document.getElementById('chatInput');
+  if(inp){inp.value='';inp.style.height='auto';inp.placeholder='Describe the incident…';inp.disabled=false;}
+  const btn=document.getElementById('sendBtn'); if(btn)btn.disabled=false;
+  renderBPSidebar();
+  renderAll();
+}
 
 function toggleSection(hdr) {
   const body=hdr.nextElementSibling, arrow=hdr.querySelector('.dbg-arrow');
@@ -804,14 +953,8 @@ function toggleSection(hdr) {
   arrow.textContent=open?'▶':'▾';
   hdr.classList.toggle('open',!open);
 }
-function toggleObj(id) {
-  const el=document.getElementById(id); if(!el)return;
-  const row=el.previousElementSibling, arrow=row&&row.querySelector('.dbg-expand');
-  const open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  if(arrow) arrow.textContent=open?'▶':'▾';
-}
 
+function renderAll() { renderCode(); renderPanel(); renderStatus(); renderNav(); }
 renderAll();
 </script>
 </body>
