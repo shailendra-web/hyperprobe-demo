@@ -379,20 +379,8 @@ var FRAMES = [
 ];
 
 var FV = [
-  // Frame 0 — process(), line 15 — loop state + local vars
-  {loop:[
-    {k:'iteration',           v:'<span class="dv warn">3 of 6</span>'},
-    {k:'rule.name',           v:'<span class="dv str">"PROMO_CODE_DISCOUNT"</span>'},
-    {k:'rule.promoCode',      v:'<span class="dv str">"SALE20"</span>'},
-    {k:'rule.discountPct',    v:'<span class="dv num">0.20</span>'},
-    {k:'rule.eligibilityCheck', v:'<span class="dv cond">CUSTOMER_TIER == <span class="dv str">"GOLD"</span></span>', bad:true},
-  ], local:[
-    {k:'price',               v:'<span class="dv num">268.00</span>'},
-    {k:'customerId',          v:'<span class="dv str">"MCY-88421"</span>'},
-    {k:'item.basePrice',      v:'<span class="dv num">268.00</span>'},
-    {k:'item.category',       v:'<span class="dv str">"OUTERWEAR"</span>'},
-    {k:'item.customerTier',   v:'<span class="dv bad">"SILVER"</span>', bad:true},
-  ]},
+  // Frame 0 — per-snapshot (3 snaps)
+  {loop:[], local:[]}, // placeholder, overridden by SNAPS
   // Frame 1 — execute()
   {loop:[], local:[
     {k:'entry.key',           v:'<span class="dv str">"SKU-JKT-9921"</span>'},
@@ -408,7 +396,85 @@ var FV = [
 // ════════════════════════
 // STATE
 // ════════════════════════
-var snapped=false, activeFrame=0;
+var snapped=false, activeFrame=0, selectedSnap=0, snapCount=0;
+
+
+// ════════════════════════
+// SNAPSHOT DATA
+// ════════════════════════
+var SNAPS = [
+  {
+    label:'rule.name = "FLASH_SALE_10"',
+    summary:'price 340.00 → 306.00',
+    time:'14:32:07.109',
+    summaryClass:'fi-fn',
+    loop:[
+      {k:'rule.name',             v:'<span class="dv str">"FLASH_SALE_10"</span>'},
+      {k:'rule.discountPct',      v:'<span class="dv num">0.10</span>'},
+      {k:'rule.eligibilityCheck', v:'<span class="dv cond">CATEGORY == <span class="dv str">"OUTERWEAR"</span></span>'},
+    ],
+    local:[
+      {k:'price (before)',        v:'<span class="dv num">340.00</span>'},
+      {k:'price (after apply)',   v:'<span class="dv num" style="color:#6ee7b7">306.00</span>'},
+      {k:'customerId',            v:'<span class="dv str">"MCY-88421"</span>'},
+      {k:'item.category',         v:'<span class="dv str">"OUTERWEAR"</span>'},
+      {k:'item.customerTier',     v:'<span class="dv str">"SILVER"</span>'},
+    ]
+  },
+  {
+    label:'rule.name = "PROMO_CODE_DISCOUNT"',
+    summary:'rule.eligibilityCheck failed · tier mismatch',
+    time:'14:32:07.441',
+    summaryClass:'fi-bad',
+    loop:[
+      {k:'rule.name',             v:'<span class="dv str">"PROMO_CODE_DISCOUNT"</span>'},
+      {k:'rule.promoCode',        v:'<span class="dv str">"SALE20"</span>'},
+      {k:'rule.discountPct',      v:'<span class="dv num">0.20</span>'},
+      {k:'rule.eligibilityCheck', v:'<span class="dv cond">CUSTOMER_TIER == <span class="dv str">"GOLD"</span></span>', bad:true},
+    ],
+    local:[
+      {k:'price',                 v:'<span class="dv num">306.00</span>'},
+      {k:'customerId',            v:'<span class="dv str">"MCY-88421"</span>'},
+      {k:'item.basePrice',        v:'<span class="dv num">340.00</span>'},
+      {k:'item.category',         v:'<span class="dv str">"OUTERWEAR"</span>'},
+      {k:'item.customerTier',     v:'<span class="dv bad">"SILVER"</span>', bad:true},
+    ]
+  },
+  {
+    label:'rule.name = "LOYALTY_DISCOUNT"',
+    summary:'rule.eligibilityCheck failed · points insufficient',
+    time:'14:32:07.892',
+    summaryClass:'fi-bad',
+    loop:[
+      {k:'rule.name',             v:'<span class="dv str">"LOYALTY_DISCOUNT"</span>'},
+      {k:'rule.discountPct',      v:'<span class="dv num">0.15</span>'},
+      {k:'rule.eligibilityCheck', v:'<span class="dv cond">LOYALTY_POINTS &gt;= <span class="dv num">500</span></span>', bad:true},
+    ],
+    local:[
+      {k:'price',                 v:'<span class="dv num">306.00</span>'},
+      {k:'customerId',            v:'<span class="dv str">"MCY-88421"</span>'},
+      {k:'item.category',         v:'<span class="dv str">"OUTERWEAR"</span>'},
+      {k:'item.customerTier',     v:'<span class="dv str">"SILVER"</span>'},
+      {k:'item.loyaltyPoints',    v:'<span class="dv bad">120</span>', bad:true},
+    ]
+  },
+];
+
+
+function updateBPBadge(){
+  document.getElementById('bpList').innerHTML='<div class="bpi"><span class="bpi-dot"></span>'
+    +'<div class="bpi-info"><div class="bpi-ln">line 15</div><div class="bpi-fn">process()</div></div>'
+    +'<span class="bpi-b bpi-c">'+snapCount+' CAPTURED</span></div>';
+}
+
+function showSnapToast(n){
+  var t=document.getElementById('toast');
+  document.querySelector('.toast-t').textContent='⬤ Hyperprobe';
+  document.querySelector('.toast-b').textContent='Snapshot #'+n+' captured · line 15 · '+SNAPS[n-1].label;
+  document.querySelector('.toast-s').textContent=SNAPS[n-1].summary;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
 
 // ════════════════════════
 // RENDER CODE
@@ -431,7 +497,7 @@ function renderCode(){
     var g='<span class="gutter"></span>';
     var gh='';
     if(bpActive&&!snapped){g='<span class="gutter"><span class="bp-outer"><span class="bp-bolt">⚡</span></span></span>';gh='<span class="ghost">// ⬤ active · waiting for next request…</span>';}
-    if(bpActive&&snapped) {g='<span class="gutter"><span class="bp-outer"><span class="bp-bolt">⚡</span></span></span>';gh='<span class="ghost">// ⬤ snapshot captured</span>';}
+    if(bpActive&&snapped) {g='<span class="gutter"><span class="bp-outer"><span class="bp-bolt">⚡</span></span></span>';gh='<span class="ghost">// ⬤ '+snapCount+' snapshot'+(snapCount!==1?'s':'')+' captured</span>';}
     return '<div class="'+cls+'" oncontextmenu="showCtx(event,15)">'+g+'<span class="ln">'+L.n+'</span><span class="lc">'+L.c+gh+'</span></div>';
   }).join('');
 }
@@ -467,32 +533,52 @@ function renderPanel(){
     return;
   }
 
-  var fvData=FV[activeFrame];
+  // Use selectedSnap for frame 0, otherwise use FV
+  var snap = SNAPS[selectedSnap];
+  var fvData = activeFrame===0 ? snap : FV[activeFrame];
   var dl=FRAMES[activeFrame].fn+' · line '+FRAMES[activeFrame].ln;
 
   var loopHTML='';
-  if(fvData.loop.length>0){
+  var loopSrc = activeFrame===0 ? snap.loop : fvData.loop;
+  if(loopSrc && loopSrc.length>0){
     loopHTML='<div class="ds"><div class="ds-hdr open"><span class="ds-arr">▾</span><span style="color:#dcdcaa">Loop State</span></div><div>'
-      +fvData.loop.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn loop">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
+      +loopSrc.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn loop">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
       +'</div></div>';
   }
 
+  var localSrc = activeFrame===0 ? snap.local : fvData.local;
   var localHTML='<div class="ds"><div class="ds-hdr open"><span class="ds-arr">▾</span><span style="color:#9cdcfe">Local Variables</span></div><div>'
-    +fvData.local.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
+    +localSrc.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
     +'</div></div>';
 
   var stackHTML=FRAMES.map(function(f,i){
     return '<div class="sf'+(i===activeFrame?' on':'')+'" onclick="selectFrame('+i+')" style="cursor:pointer"><div class="sf-fn">'+f.fn+'</div><div class="sf-loc">'+f.file+' · <span>line '+f.ln+'</span></div></div>';
   }).join('');
 
-  pc.innerHTML='<div class="feed"><div class="feed-hdr">Snapshots</div>'
-    +'<div class="fit on"><div class="fi-top"><span class="fi-ln">line 15</span><span class="fi-time">14:32:07.441</span></div>'
-    +'<div class="fi-fn">process() · iteration 3 of 6</div>'
-    +'<div class="fi-bad">rule.eligibilityCheck mismatch</div></div>'
+  var feedItems=SNAPS.slice(0,snapCount).map(function(s,i){
+    var isSel=i===selectedSnap&&activeFrame===0;
+    return '<div class="fit'+(isSel?' on':'')+'" onclick="selectedSnap='+i+';activeFrame=0;renderCode();renderPanel();" style="cursor:pointer">'
+      +'<div class="fi-top"><span class="fi-ln">Snap #'+(i+1)+'</span><span class="fi-time">'+s.time+'</span></div>'
+      +'<div class="fi-fn">'+s.label+'</div>'
+      +'<div class="'+s.summaryClass+'">'+s.summary+'</div>'
+      +'</div>';
+  }).join('');
+  // Show firing indicator for next snap if still waiting
+  var firingHTML='';
+  if(snapCount>0&&snapCount<3){
+    firingHTML='<div class="feed-wait" style="padding:8px 12px;gap:6px;">'
+      +'<div class="spinner" style="width:12px;height:12px;border-width:2px;flex-shrink:0;"></div>'
+      +'<div style="font-size:10.5px;color:#555">Snap #'+(snapCount+1)+' firing…</div>'
+      +'</div>';
+  }
+
+  var snapCountLabel=snapCount>0?'<span style="color:#c0392b;font-weight:700">'+snapCount+'</span>':'';
+  pc.innerHTML='<div class="feed"><div class="feed-hdr">Snapshots '+snapCountLabel+'</div>'
+    +feedItems+firingHTML
     +'</div>'
     +'<div class="snap-detail">'
-    +'<div class="dh"><div class="dh-title"><span class="dh-badge">SNAPSHOT #1</span>'+dl+'</div>'
-    +'<div class="dh-meta"><span>2024-01-15 14:32:07 UTC</span><span>ord_99812</span><span style="color:#f48771;font-weight:600">production</span></div></div>'
+    +'<div class="dh"><div class="dh-title"><span class="dh-badge">SNAPSHOT #'+(selectedSnap+1)+'</span>'+dl+'</div>'
+    +'<div class="dh-meta"><span>2024-01-15 '+snap.time+' UTC</span><span>ord_99812</span><span style="color:#f48771;font-weight:600">production</span></div></div>'
     +'<div class="dbody"><div class="vp"><div class="pane-title">Variables</div>'+loopHTML+localHTML+'</div>'
     +'<div class="sp"><div class="pane-title">Call Stack</div>'+stackHTML+'</div>'
     +'</div></div>';
@@ -504,9 +590,9 @@ function renderPanel(){
 function renderStatus(){
   var bpActive=document.getElementById('bpSec').style.display!=='none';
   document.getElementById('sbBp').textContent='⬤ '+(bpActive?'1':'0')+' breakpoint'+(bpActive?'':'s')+' active';
-  document.getElementById('sbSnap').textContent='📸 '+(snapped?'1':'0')+' snapshot'+(snapped?'':'s');
-  document.getElementById('snapN').textContent=snapped?'1':'0';
-  document.getElementById('actBadge').style.display=snapped?'block':'none';
+  document.getElementById('sbSnap').textContent='📸 '+snapCount+' snapshot'+(snapCount!==1?'s':'');
+  document.getElementById('snapN').textContent=snapCount>0?snapCount:'0';
+  document.getElementById('actBadge').style.display=snapCount>0?'block':'none';
   document.getElementById('tabDot').style.display=bpActive?'inline-block':'none';
 }
 
@@ -545,13 +631,29 @@ document.getElementById('bpfActivate').onclick=function(){
     document.getElementById('toast').classList.add('show');
     setTimeout(function(){document.getElementById('toast').classList.remove('show');},3000);
   },400);
-  // fire snapshot after 3s
+  // fire snapshots one by one with 2s delay each
+  // Snap 1 fires at 3s
   setTimeout(function(){
-    snapped=true;
-    activeFrame=0;
-    document.getElementById('bpList').innerHTML='<div class="bpi"><span class="bpi-dot"></span><div class="bpi-info"><div class="bpi-ln">line 15</div><div class="bpi-fn">process()</div></div><span class="bpi-b bpi-c">CAPTURED</span></div>';
+    snapped=true; selectedSnap=0; activeFrame=0;
+    snapCount=1;
+    updateBPBadge();
     renderCode(); renderPanel(); renderStatus();
+    showSnapToast(1);
   },3000);
+  // Snap 2 fires at 5s
+  setTimeout(function(){
+    selectedSnap=1; snapCount=2;
+    updateBPBadge();
+    renderCode(); renderPanel(); renderStatus();
+    showSnapToast(2);
+  },5000);
+  // Snap 3 fires at 7s
+  setTimeout(function(){
+    selectedSnap=2; snapCount=3;
+    updateBPBadge();
+    renderCode(); renderPanel(); renderStatus();
+    showSnapToast(3);
+  },7000);
 };
 
 // ════════════════════════
