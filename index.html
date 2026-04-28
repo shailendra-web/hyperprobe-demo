@@ -3,959 +3,580 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hyperprobe — Debug</title>
+<title>Hyperprobe — Flash Sale Pricing Bug</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html,body { height:100%; background:#1e1e1e; font-family:'JetBrains Mono',monospace; font-size:13px; color:#d4d4d4; overflow:hidden; }
-.vscode { display:flex; flex-direction:column; height:100vh; }
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:#1e1e1e;font-family:'JetBrains Mono',monospace;font-size:13px;color:#d4d4d4;overflow:hidden;}
+.vs{display:flex;flex-direction:column;height:100vh;}
+.titlebar{height:30px;background:#3c3c3c;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;border-bottom:1px solid #252526;}
+.titlebar-dots{display:flex;gap:6px;}
+.dot{width:12px;height:12px;border-radius:50%;}
+.titlebar-title{font-size:12px;color:#cccccc;}
+.titlebar-ctrl{display:flex;gap:16px;font-size:11px;color:#8b8b8b;}
+.menubar{height:26px;background:#3c3c3c;display:flex;align-items:center;padding:0 8px;gap:2px;flex-shrink:0;}
+.mi{padding:2px 8px;font-size:12px;color:#cccccc;cursor:pointer;border-radius:3px;}
+.mi:hover{background:#505050;}
+.mi.hp{color:#c0392b;font-weight:600;}
+.body{display:flex;flex:1;overflow:hidden;}
 
-/* ── CHROME ── */
-.titlebar { height:30px; background:#3c3c3c; display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; border-bottom:1px solid #252526; }
-.titlebar-dots { display:flex; gap:6px; }
-.titlebar-dot { width:12px; height:12px; border-radius:50%; }
-.titlebar-title { font-size:12px; color:#cccccc; }
-.titlebar-controls { display:flex; gap:16px; font-size:11px; color:#8b8b8b; }
-.menubar { height:26px; background:#3c3c3c; display:flex; align-items:center; padding:0 8px; gap:2px; flex-shrink:0; }
-.menu-item { padding:2px 8px; font-size:12px; color:#cccccc; cursor:pointer; border-radius:3px; }
-.menu-item:hover { background:#505050; }
-.main { display:flex; flex:1; overflow:hidden; }
+/* ACTIVITY BAR */
+.ab{width:48px;background:#333;display:flex;flex-direction:column;align-items:center;padding-top:8px;gap:4px;flex-shrink:0;border-right:1px solid #252526;}
+.abi{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:#858585;font-size:18px;position:relative;user-select:none;}
+.abi:hover{color:#d4d4d4;}
+.abi.on{color:#d4d4d4;}
+.abi.on::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:2px;height:24px;background:#d4d4d4;border-radius:1px;}
+.abi.hp{color:#c0392b;}
+.ab-badge{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:white;display:none;}
 
-/* ── ACTIVITY BAR ── */
-.activitybar { width:48px; background:#333333; display:flex; flex-direction:column; align-items:center; padding-top:8px; gap:4px; flex-shrink:0; border-right:1px solid #252526; }
-.activity-icon { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:4px; cursor:pointer; color:#858585; font-size:18px; position:relative; }
-.activity-icon.active { color:#d4d4d4; }
-.activity-icon.active::before { content:''; position:absolute; left:-8px; top:50%; transform:translateY(-50%); width:2px; height:24px; background:#d4d4d4; border-radius:1px; }
-.activity-badge { position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#c0392b; display:none; }
+/* LEFT SIDEBAR */
+.ls{width:220px;flex-shrink:0;background:#252526;border-right:1px solid #1e1e1e;display:flex;flex-direction:column;overflow:hidden;}
+.ls-hdr{padding:9px 12px 5px;font-size:11px;font-weight:600;color:#bbb;letter-spacing:1.5px;text-transform:uppercase;}
+.ft{flex:1;overflow-y:auto;}
+.fi{display:flex;align-items:center;gap:6px;padding:3px 12px 3px 20px;font-size:12.5px;color:#cccccc;cursor:pointer;white-space:nowrap;user-select:none;position:relative;}
+.fi:hover{background:#2a2d2e;}
+.fi.sel{background:#094771;color:#fff;}
+.fi.folder{color:#dcb67a;}
+.bpsec{border-top:1px solid #2a2a2a;flex-shrink:0;}
+.bpsec-hdr{padding:5px 12px;font-size:10px;color:#858585;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;}
+.bpsec-n{color:#c0392b;font-weight:700;}
+.bplist{max-height:100px;overflow-y:auto;}
+.bpi{padding:6px 12px;border-bottom:1px solid #2a2a2a;display:flex;align-items:flex-start;gap:7px;}
+.bpi-dot{width:9px;height:9px;border-radius:50%;background:#c0392b;margin-top:3px;flex-shrink:0;animation:pulse 2s ease-in-out infinite;}
+.bpi-info{flex:1;}
+.bpi-ln{font-size:11px;color:#4ec9b0;font-weight:600;}
+.bpi-fn{font-size:10px;color:#dcdcaa;}
+.bpi-b{font-size:8px;padding:1px 4px;border-radius:2px;font-weight:700;flex-shrink:0;}
+.bpi-w{background:rgba(215,153,33,0.15);color:#fcd34d;border:1px solid rgba(215,153,33,0.3);}
+.bpi-c{background:rgba(22,101,52,0.2);color:#6ee7b7;border:1px solid rgba(22,101,52,0.3);}
 
-/* ══ SIDEBAR ══ */
-.sidebar { width:300px; flex-shrink:0; background:#252526; border-right:1px solid #1e1e1e; display:flex; flex-direction:column; overflow:hidden; }
+/* EDITOR */
+.ed-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.tabbar{height:35px;background:#2d2d2d;display:flex;align-items:flex-end;flex-shrink:0;border-bottom:1px solid #252526;}
+.tab{height:35px;padding:0 16px;display:flex;align-items:center;gap:8px;font-size:13px;color:#d4d4d4;border-right:1px solid #252526;border-top:1px solid #c0392b;background:#1e1e1e;white-space:nowrap;}
+.ed-split{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ed{flex:0 0 55%;background:#1e1e1e;overflow:hidden;display:flex;flex-direction:column;}
+.cs{flex:1;overflow-y:auto;padding:10px 0;}
 
-/* Header — always visible */
-.sidebar-header { padding:10px 12px 10px; background:#2d2d2d; border-bottom:1px solid #333; flex-shrink:0; display:flex; align-items:center; gap:8px; }
-.sidebar-dot { width:8px; height:8px; border-radius:50%; background:#c0392b; animation:blink 1.5s ease-in-out infinite; flex-shrink:0; }
-.sidebar-name { font-size:12px; font-weight:600; color:#d4d4d4; letter-spacing:0.5px; }
-.sidebar-badge { font-size:9px; background:#c0392b; color:white; padding:1px 6px; border-radius:2px; font-weight:700; letter-spacing:1px; margin-left:auto; }
+/* CODE */
+.cl{display:flex;align-items:center;white-space:pre;line-height:1.65;font-size:13px;position:relative;}
+.cl:hover{background:rgba(255,255,255,0.03);}
+.cl.bpl{background:rgba(192,57,43,0.15);}
+.cl.bpl::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#c0392b;}
+.gutter{width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.bp-outer{width:13px;height:13px;border-radius:50%;background:#c0392b;box-shadow:0 0 8px rgba(192,57,43,0.9);animation:pulse 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;}
+.bp-bolt{font-size:7px;color:white;}
+.bp-dot-p{width:11px;height:11px;border-radius:50%;border:2px dashed #c0392b;opacity:0.75;}
+@keyframes pulse{0%,100%{box-shadow:0 0 4px rgba(192,57,43,0.5)}50%{box-shadow:0 0 12px rgba(192,57,43,1)}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.ln{width:36px;flex-shrink:0;text-align:right;padding-right:14px;color:#858585;font-size:13px;user-select:none;}
+.cl.bpl .ln{color:#d4d4d4;}
+.lc{flex:1;padding-right:12px;}
+.ghost{color:#6a9955;font-size:12px;font-style:italic;margin-left:12px;}
+.kw{color:#569cd6;}.ty{color:#4ec9b0;}.fn{color:#dcdcaa;}.st{color:#ce9178;}.cm{color:#6a9955;font-style:italic;}.va{color:#9cdcfe;}.ann{color:#c586c0;}
 
-/* Idle state — shown before AI is opened */
-.sidebar-idle { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.idle-content { padding:20px 16px 16px; display:flex; flex-direction:column; gap:14px; }
-.idle-desc { font-size:11px; color:#858585; line-height:1.8; }
-.idle-desc strong { color:#d4d4d4; }
-.btn-use-ai { background:#c0392b; color:white; border:none; padding:9px 0; width:100%; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:2px; letter-spacing:0.5px; transition:background 0.15s; display:flex; align-items:center; justify-content:center; gap:7px; }
-.btn-use-ai:hover { background:#a93226; }
-.idle-divider { display:flex; align-items:center; gap:10px; margin:4px 0; }
-.idle-divider-line { flex:1; height:1px; background:#333; }
-.idle-divider-text { font-size:10px; color:#555; }
-.manual-hint-box { background:#1e1e1e; border:1px solid #333; padding:10px 12px; }
-.manual-hint-title { font-size:9.5px; color:#858585; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
-.manual-hint-step { display:flex; align-items:flex-start; gap:7px; font-size:10.5px; color:#858585; line-height:1.6; margin-bottom:5px; }
-.manual-hint-step:last-child { margin-bottom:0; }
-.manual-hint-num { color:#c0392b; font-weight:700; flex-shrink:0; }
+/* EDITOR HINT BANNER */
+.ed-hint{padding:8px 14px;background:rgba(192,57,43,0.08);border-bottom:1px solid rgba(192,57,43,0.2);display:flex;align-items:center;gap:10px;flex-shrink:0;}
 
-/* BP list in sidebar — shown once manual BPs are added */
-.bp-sidebar-section { border-top:1px solid #2a2a2a; flex-shrink:0; }
-.bp-sidebar-hdr { padding:6px 12px; font-size:10px; color:#858585; letter-spacing:1px; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
-.bp-sidebar-count { color:#c0392b; font-weight:700; }
-.bp-sidebar-list { max-height:180px; overflow-y:auto; }
-.bp-sidebar-item { padding:7px 12px; border-bottom:1px solid #2a2a2a; display:flex; align-items:flex-start; gap:8px; }
-.bpi-dot { width:9px; height:9px; border-radius:50%; background:#c0392b; margin-top:3px; flex-shrink:0; box-shadow:0 0 5px rgba(192,57,43,0.7); animation:pulse 2s ease-in-out infinite; }
-.bpi-info { flex:1; }
-.bpi-line { font-size:11.5px; color:#4ec9b0; font-weight:600; }
-.bpi-fn { font-size:10.5px; color:#dcdcaa; }
-.bpi-cond { font-size:10px; color:#6a9955; margin-top:1px; }
-.bpi-status { font-size:8px; padding:1px 5px; border-radius:2px; font-weight:700; flex-shrink:0; white-space:nowrap; }
-.bpi-captured { background:rgba(22,101,52,0.2); color:#6ee7b7; border:1px solid rgba(22,101,52,0.3); }
-.bpi-waiting  { background:rgba(215,153,33,0.15); color:#fcd34d; border:1px solid rgba(215,153,33,0.3); }
+/* CONTEXT MENU */
+.ctx{position:fixed;background:#252526;border:1px solid #454545;min-width:230px;z-index:400;box-shadow:0 4px 20px rgba(0,0,0,0.5);display:none;}
+.ctx.show{display:block;}
+.ctx-it{padding:7px 14px;font-size:12px;color:#d4d4d4;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.ctx-it:hover{background:#094771;}
+.ctx-it.sep{border-top:1px solid #3c3c3c;}
+.ctx-hp{color:#c0392b;font-weight:700;}
+.ctx-sh{margin-left:auto;font-size:10px;color:#858585;}
 
-/* ── AI CHAT ── */
-.ai-chat { flex:1; display:none; flex-direction:column; overflow:hidden; }
-.ai-chat.open { display:flex; }
-.chat-messages { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
-.chat-messages::-webkit-scrollbar { width:3px; }
-.chat-messages::-webkit-scrollbar-thumb { background:#3c3c3c; }
+/* BP FORM */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.ov.show{opacity:1;pointer-events:all;}
+.bpf{background:#252526;border:1px solid #454545;width:440px;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.6);overflow:hidden;}
+.bpf-hdr{padding:12px 16px;background:#2d2d30;border-bottom:1px solid #3c3c3c;display:flex;align-items:center;justify-content:space-between;}
+.bpf-title{font-size:13px;color:#d4d4d4;font-weight:600;display:flex;align-items:center;gap:8px;}
+.bpf-x{color:#858585;cursor:pointer;font-size:16px;}
+.bpf-body{padding:16px;display:flex;flex-direction:column;gap:14px;}
+.bpf-row{display:flex;flex-direction:column;gap:5px;}
+.bpf-lbl{font-size:11px;color:#858585;letter-spacing:0.8px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.bpf-opt{font-size:9px;background:#094771;color:#9cdcfe;padding:1px 5px;border-radius:2px;text-transform:none;}
+.bpf-in{background:#3c3c3c;border:1px solid #555;color:#d4d4d4;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:2px;outline:none;}
+.bpf-in:focus{border-color:#569cd6;}
+.bpf-in::placeholder{color:#555;}
+.bpf-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.bpf-hint{font-size:10px;color:#6a9955;font-style:italic;}
+.bpf-ftr{padding:12px 16px;background:#2d2d30;border-top:1px solid #3c3c3c;display:flex;gap:8px;justify-content:flex-end;}
+.bpf-btn{padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;border:none;cursor:pointer;border-radius:2px;font-weight:600;}
+.bpf-pri{background:#c0392b;color:white;}.bpf-pri:hover{background:#a93226;}
+.bpf-sec{background:#3c3c3c;color:#d4d4d4;border:1px solid #555;}
 
-.msg { display:flex; gap:7px; align-items:flex-start; }
-.msg.msg-dev { flex-direction:row-reverse; }
-.avatar { width:22px; height:22px; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex-shrink:0; margin-top:1px; }
-.avatar-dev { background:#2d3748; color:#9cdcfe; border:1px solid #4a5568; }
-.avatar-ai  { background:#c0392b; color:white; }
-.bubble { font-size:11.5px; line-height:1.7; max-width:calc(100% - 30px); }
-.bubble code { font-family:'JetBrains Mono',monospace; font-size:10.5px; background:rgba(255,255,255,0.08); padding:1px 4px; border-radius:2px; }
-.bubble-dev { background:#2a2d2e; border:1px solid #3a3a3a; padding:8px 11px; color:#d4d4d4; border-radius:2px 0 2px 2px; }
-.bubble-ai  { background:#1e1e1e; border:1px solid #333; padding:9px 12px; color:#d4d4d4; border-radius:0 2px 2px 2px; }
+/* TOAST */
+.toast{position:fixed;bottom:32px;right:32px;background:#252526;border:1px solid #454545;border-left:3px solid #c0392b;padding:11px 14px;z-index:400;width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.5);transform:translateX(120%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.toast.show{transform:translateX(0);}
+.toast-t{font-size:11px;font-weight:700;color:#c0392b;margin-bottom:4px;}
+.toast-b{font-size:11.5px;color:#d4d4d4;line-height:1.6;}
+.toast-s{font-size:10px;color:#6a9955;margin-top:3px;}
 
-.typing-indicator { display:flex; gap:4px; align-items:center; padding:2px 0; }
-.typing-dot { width:5px; height:5px; border-radius:50%; background:#858585; animation:typingBounce 1.2s ease-in-out infinite; }
-.typing-dot:nth-child(2) { animation-delay:0.2s; }
-.typing-dot:nth-child(3) { animation-delay:0.4s; }
-@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-
-.bp-proposal { margin:8px 0 4px; border:1px solid rgba(192,57,43,0.3); background:rgba(192,57,43,0.05); }
-.bp-proposal-item { padding:7px 10px; border-bottom:1px solid rgba(192,57,43,0.15); font-size:11px; }
-.bp-proposal-item:last-child { border-bottom:none; }
-.bpi-label { color:#4ec9b0; font-weight:700; }
-.bpi-fn-name { color:#dcdcaa; margin-left:4px; }
-.bpi-reason { color:#858585; font-size:10px; margin-top:2px; line-height:1.5; }
-.bp-actions { display:flex; gap:6px; margin-top:9px; }
-.btn-approve { background:#c0392b; color:white; border:none; padding:6px 14px; font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700; cursor:pointer; border-radius:2px; transition:background 0.15s; }
-.btn-approve:hover { background:#a93226; }
-.btn-approve:disabled { background:#3c3c3c; color:#555; cursor:default; }
-.btn-dismiss { background:transparent; color:#858585; border:1px solid #3c3c3c; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:10.5px; cursor:pointer; border-radius:2px; }
-.btn-dismiss:hover { color:#d4d4d4; }
-
-.chat-waiting { display:flex; align-items:center; gap:8px; padding:8px 11px; background:#1e1e1e; border:1px solid #333; color:#858585; font-size:11px; border-radius:0 2px 2px 2px; }
-.chat-spinner { width:13px; height:13px; border:2px solid #333; border-top:2px solid #c0392b; border-radius:50%; animation:spin 1s linear infinite; flex-shrink:0; }
-
-.snap-summary { margin:6px 0; background:rgba(192,57,43,0.05); border:1px solid rgba(192,57,43,0.2); overflow:hidden; }
-.snap-summary-hdr { background:rgba(192,57,43,0.1); padding:4px 9px; display:flex; align-items:center; justify-content:space-between; }
-.snap-summary-title { color:#f48771; font-weight:700; font-size:10.5px; }
-.snap-summary-sub { color:#858585; font-size:9px; }
-.snap-summary-rows { padding:5px 9px; }
-.snap-row { display:flex; align-items:baseline; font-family:'JetBrains Mono',monospace; font-size:10.5px; line-height:1.7; }
-.snap-row.hl { background:rgba(192,57,43,0.1); margin:0 -9px; padding:0 9px; }
-.sr-k { color:#9b9b9b; min-width:105px; }
-.sr-e { color:#555; margin:0 4px; }
-.sr-bad  { color:#f48771; font-weight:700; }
-.sr-warn { color:#d97706; font-weight:700; }
-.sr-info { color:#93c5fd; }
-.sr-note { color:#858585; font-size:9px; font-style:italic; margin-left:5px; }
-.snap-sec { font-size:8.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#569cd6; margin-top:4px; display:block; }
-
-.rca-block { margin:7px 0 2px; border:1px solid #333; overflow:hidden; }
-.rca-block-hdr { padding:4px 9px; background:#252526; font-size:8.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#858585; border-bottom:1px solid #333; }
-.rca-row { display:flex; gap:7px; align-items:flex-start; padding:6px 9px; border-bottom:1px solid #2a2a2a; line-height:1.6; font-size:11px; }
-.rca-row:last-child { border-bottom:none; }
-.rca-lbl { font-size:8px; font-weight:700; padding:2px 4px; border-radius:2px; flex-shrink:0; margin-top:2px; white-space:nowrap; }
-.lbl-cause { background:rgba(192,57,43,0.15); color:#f48771; border:1px solid rgba(192,57,43,0.3); }
-.lbl-scope { background:rgba(29,78,216,0.15); color:#93c5fd; border:1px solid rgba(29,78,216,0.3); }
-.lbl-fix   { background:rgba(22,101,52,0.15); color:#6ee7b7; border:1px solid rgba(22,101,52,0.3); }
-.rca-val { color:#d4d4d4; flex:1; }
-.rca-val code { font-family:'JetBrains Mono',monospace; font-size:10.5px; background:rgba(255,255,255,0.07); padding:1px 3px; }
-
-.chat-input-area { padding:9px 10px; border-top:1px solid #2a2a2a; flex-shrink:0; display:flex; gap:6px; align-items:flex-end; }
-.chat-input { flex:1; background:#1e1e1e; border:1px solid #3c3c3c; color:#d4d4d4; padding:7px 10px; font-family:'JetBrains Mono',monospace; font-size:11px; border-radius:2px; outline:none; resize:none; max-height:72px; overflow-y:auto; line-height:1.5; }
-.chat-input:focus { border-color:#c0392b; }
-.chat-input::placeholder { color:#555; }
-.chat-send { background:#c0392b; color:white; border:none; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; border-radius:2px; flex-shrink:0; transition:background 0.15s; }
-.chat-send:hover { background:#a93226; }
-.chat-send:disabled { background:#3c3c3c; cursor:default; }
-
-/* ── EDITOR ── */
-.editor-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.tabbar { height:35px; background:#2d2d2d; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #252526; }
-.tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:8px; font-size:13px; color:#969696; cursor:pointer; border-right:1px solid #252526; white-space:nowrap; }
-.tab.active { background:#1e1e1e; color:#d4d4d4; border-top:1px solid #c0392b; }
-.editor-panel-split { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.editor { flex:0 0 52%; background:#1e1e1e; overflow:hidden; display:flex; flex-direction:column; }
-.code-scroll { flex:1; overflow:hidden; display:flex; flex-direction:column; padding:10px 0; }
-.code-line { display:flex; align-items:center; white-space:pre; line-height:1.65; font-size:13px; }
-.code-line.bp-line  { background:rgba(192,57,43,0.16); }
-.code-line.bp-line2 { background:rgba(192,57,43,0.10); }
-.line-gutter { width:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-.bp-dot { width:11px; height:11px; border-radius:50%; background:#c0392b; box-shadow:0 0 6px rgba(192,57,43,0.8); animation:pulse 2s ease-in-out infinite; }
-.bp-dot-proposed { width:11px; height:11px; border-radius:50%; background:transparent; border:2px dashed #c0392b; opacity:0.7; }
-@keyframes pulse { 0%,100%{box-shadow:0 0 4px rgba(192,57,43,0.5)} 50%{box-shadow:0 0 10px rgba(192,57,43,1)} }
-@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0.25} }
-@keyframes spin   { to{transform:rotate(360deg);} }
-.line-num { width:36px; flex-shrink:0; text-align:right; padding-right:14px; color:#858585; font-size:13px; user-select:none; }
-.code-line.bp-line .line-num, .code-line.bp-line2 .line-num { color:#d4d4d4; }
-.line-code { flex:1; padding-right:12px; }
-.inline-ghost { color:#6a9955; font-size:12px; font-style:italic; margin-left:12px; opacity:0.85; }
-.kw{color:#569cd6;}.fn{color:#dcdcaa;}.ty{color:#4ec9b0;}.st{color:#ce9178;}.cm{color:#6a9955;font-style:italic;}.va{color:#9cdcfe;}.prop{color:#9cdcfe;}
-
-/* ── CONTEXT MENU ── */
-.ctx-menu { position:fixed; background:#252526; border:1px solid #454545; min-width:220px; z-index:400; box-shadow:0 4px 20px rgba(0,0,0,0.5); display:none; }
-.ctx-menu.visible { display:block; }
-.ctx-item { padding:7px 14px; font-size:12px; color:#d4d4d4; cursor:pointer; display:flex; align-items:center; gap:10px; }
-.ctx-item:hover { background:#094771; }
-.ctx-item.sep { border-top:1px solid #333; }
-.ctx-hp { color:#c0392b; font-weight:700; }
-
-/* ── BP FORM ── */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.18s; }
-.overlay.visible { opacity:1; pointer-events:all; }
-.bp-form { background:#252526; border:1px solid #454545; width:430px; border-radius:3px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
-.bp-form-header { padding:11px 16px; background:#2d2d30; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; justify-content:space-between; }
-.bp-form-title { font-size:13px; color:#d4d4d4; font-weight:600; display:flex; align-items:center; gap:8px; }
-.bp-form-close { color:#858585; cursor:pointer; font-size:16px; }
-.bp-form-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
-.bp-form-row { display:flex; flex-direction:column; gap:4px; }
-.bp-form-label { font-size:10.5px; color:#858585; letter-spacing:0.8px; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
-.bp-optional { font-size:8.5px; background:#094771; color:#9cdcfe; padding:1px 5px; border-radius:2px; text-transform:none; letter-spacing:0; }
-.bp-form-input { background:#3c3c3c; border:1px solid #555; color:#d4d4d4; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:11.5px; border-radius:2px; outline:none; }
-.bp-form-input:focus { border-color:#569cd6; }
-.bp-form-input::placeholder { color:#555; }
-.bp-form-2col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.bp-form-hint { font-size:10px; color:#6a9955; font-style:italic; }
-.bp-form-footer { padding:10px 16px; background:#2d2d30; border-top:1px solid #3c3c3c; display:flex; gap:8px; justify-content:flex-end; }
-.bp-btn { padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:11.5px; border:none; cursor:pointer; border-radius:2px; font-weight:600; }
-.bp-btn-primary { background:#c0392b; color:white; }
-.bp-btn-primary:hover { background:#a93226; }
-.bp-btn-sec { background:#3c3c3c; color:#d4d4d4; border:1px solid #555; }
-
-/* ── BOTTOM PANEL ── */
-.bottom-panel { flex:1; background:#1e1e1e; border-top:2px solid #c0392b; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
-.panel-tabs { height:35px; background:#252526; display:flex; align-items:flex-end; flex-shrink:0; border-bottom:1px solid #1e1e1e; }
-.panel-tab { height:35px; padding:0 16px; display:flex; align-items:center; gap:6px; font-size:12px; color:#969696; cursor:pointer; border-right:1px solid #1e1e1e; white-space:nowrap; }
-.panel-tab.active { background:#1e1e1e; color:#d4d4d4; border-top:2px solid #c0392b; }
-.panel-tab-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; min-width:16px; text-align:center; }
-.panel-content { flex:1; display:flex; overflow:hidden; }
-.snapshot-feed { width:250px; border-right:1px solid #2d2d2d; display:flex; flex-direction:column; flex-shrink:0; }
-.feed-header { padding:7px 12px; font-size:11px; color:#858585; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #2d2d2d; }
-.feed-list { flex:1; overflow-y:auto; }
-.feed-item { padding:9px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; }
-.feed-item:hover { background:#2a2d2e; }
-.feed-item.sel { background:#094771; border-left:2px solid #c0392b; }
-.fi-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
-.fi-line { font-size:12px; color:#4ec9b0; font-weight:600; }
-.fi-time { font-size:10px; color:#858585; }
-.fi-fn { font-size:11px; color:#dcdcaa; margin-bottom:1px; }
-.fi-summary .bad { color:#f48771; font-weight:600; }
-.feed-empty { padding:24px 12px; text-align:center; color:#555; font-size:11px; line-height:1.9; }
-.feed-waiting { display:flex; flex-direction:column; align-items:center; gap:8px; padding:24px 12px; color:#555; font-size:11px; text-align:center; }
-.waiting-spinner { width:18px; height:18px; border:2px solid #333; border-top:2px solid #c0392b; border-radius:50%; animation:spin 1s linear infinite; }
-.snapshot-detail { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.detail-header { padding:7px 14px; border-bottom:1px solid #2d2d2d; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.detail-title { font-size:12px; color:#d4d4d4; display:flex; align-items:center; gap:8px; }
-.detail-badge { background:#c0392b; color:white; font-size:9px; font-weight:700; padding:2px 6px; border-radius:2px; }
-.detail-meta { font-size:10px; color:#858585; display:flex; gap:12px; }
-.detail-body { flex:1; overflow-y:auto; display:flex; }
-.vars-pane { flex:1; border-right:1px solid #2d2d2d; overflow-y:auto; }
-.pane-title { padding:5px 8px; font-size:10px; color:#858585; letter-spacing:1.2px; text-transform:uppercase; background:#252526; border-bottom:1px solid #2d2d2d; position:sticky; top:0; z-index:1; }
-.dbg-section { border-bottom:1px solid #2a2a2a; }
-.dbg-section-hdr { padding:4px 8px; font-size:11px; font-weight:700; color:#bbb; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; gap:6px; background:#252526; user-select:none; }
-.dbg-section-hdr:hover { background:#2a2d2e; }
-.dbg-section-hdr.open { color:#d4d4d4; }
-.dbg-arrow { font-size:9px; color:#858585; width:10px; }
-.dbg-row { display:flex; align-items:baseline; padding:2px 8px 2px 24px; min-height:20px; }
-.dbg-row:hover { background:#2a2d2e; }
-.dbg-row.bad  { background:rgba(192,57,43,0.1); }
-.dbg-row.warn { background:rgba(215,153,33,0.07); }
-.dbg-expand { font-size:9px; color:#858585; width:14px; flex-shrink:0; margin-right:2px; }
-.dbg-name { color:#9cdcfe; font-size:12px; min-width:110px; flex-shrink:0; }
-.dbg-eq { color:#858585; margin:0 6px; font-size:12px; flex-shrink:0; }
-.dbg-val { font-size:12px; }
-.dbg-val.null { color:#f48771; font-weight:700; }
-.dbg-val.str  { color:#ce9178; }
-.dbg-val.num  { color:#b5cea8; }
-.dbg-val.bool { color:#569cd6; }
-.dbg-val.obj  { color:#858585; font-style:italic; }
-.dbg-val.warn { color:#d97706; }
-.dbg-add-watch { padding:3px 8px 3px 38px; font-size:11px; color:#555; cursor:pointer; }
-.dbg-add-watch:hover { color:#858585; }
-.stack-pane { width:200px; overflow-y:auto; flex-shrink:0; border-left:1px solid #2d2d2d; }
-.stack-frame { padding:5px 12px; border-bottom:1px solid #2a2a2a; cursor:pointer; }
-.stack-frame:hover { background:#2a2d2e; }
-.stack-frame.active { background:#094771; }
-.stack-fn { font-size:12px; color:#dcdcaa; }
-.stack-loc { font-size:10px; color:#858585; margin-top:1px; }
-.stack-loc span { color:#569cd6; }
+/* BOTTOM PANEL */
+.bot{flex:1;background:#1e1e1e;border-top:2px solid #c0392b;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.ptabs{height:35px;background:#252526;display:flex;align-items:flex-end;flex-shrink:0;border-bottom:1px solid #1e1e1e;}
+.ptab{height:35px;padding:0 16px;display:flex;align-items:center;gap:6px;font-size:12px;color:#969696;cursor:pointer;border-right:1px solid #1e1e1e;white-space:nowrap;}
+.ptab.on{background:#1e1e1e;color:#d4d4d4;border-top:2px solid #c0392b;}
+.ptab-n{background:#c0392b;color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
+.pc{flex:1;display:flex;overflow:hidden;}
+.feed{width:250px;border-right:1px solid #2d2d2d;display:flex;flex-direction:column;flex-shrink:0;}
+.feed-hdr{padding:7px 12px;font-size:11px;color:#858585;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #2d2d2d;}
+.feed-empty{padding:20px 12px;text-align:center;color:#555;font-size:11px;line-height:1.9;}
+.feed-wait{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;color:#555;font-size:11px;text-align:center;}
+.spinner{width:18px;height:18px;border:2px solid #333;border-top:2px solid #c0392b;border-radius:50%;animation:spin 1s linear infinite;}
+.fit{padding:8px 12px;border-bottom:1px solid #2a2a2a;cursor:pointer;}
+.fit:hover{background:#2a2d2e;}
+.fit.on{background:#094771;border-left:2px solid #c0392b;}
+.fi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.fi-ln{font-size:12px;color:#4ec9b0;font-weight:600;}
+.fi-time{font-size:10px;color:#858585;}
+.fi-fn{font-size:11px;color:#dcdcaa;margin-bottom:1px;}
+.fi-bad{font-size:11px;color:#f48771;font-weight:600;}
+.snap-detail{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.dh{padding:7px 14px;border-bottom:1px solid #2d2d2d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.dh-title{font-size:12px;color:#d4d4d4;display:flex;align-items:center;gap:8px;}
+.dh-badge{background:#c0392b;color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;}
+.dh-meta{font-size:10px;color:#858585;display:flex;gap:12px;}
+.dbody{flex:1;overflow-y:auto;display:flex;}
+.dbody::-webkit-scrollbar{width:3px;}
+.dbody::-webkit-scrollbar-thumb{background:#3c3c3c;}
+.vp{flex:1;border-right:1px solid #2d2d2d;overflow-y:auto;}
+.pane-title{padding:5px 8px;font-size:10px;color:#858585;letter-spacing:1.2px;text-transform:uppercase;background:#252526;border-bottom:1px solid #2d2d2d;position:sticky;top:0;z-index:1;}
+.ds{border-bottom:1px solid #2a2a2a;}
+.ds-hdr{padding:4px 8px;font-size:11px;font-weight:700;color:#d4d4d4;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;background:#252526;user-select:none;}
+.ds-hdr:hover{background:#2a2d2e;}
+.ds-arr{font-size:9px;color:#858585;width:10px;flex-shrink:0;}
+.dr{display:flex;align-items:baseline;padding:2px 8px 2px 24px;min-height:20px;position:relative;}
+.dr:hover{background:#2a2d2e;}
+.dr.bad{background:rgba(192,57,43,0.12);}
+.dr.bad::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#c0392b;border-radius:1px;}
+.dn{color:#9cdcfe;font-size:12px;min-width:160px;flex-shrink:0;}
+.dn.loop{color:#dcdcaa;}
+.de{color:#858585;margin:0 6px;font-size:12px;flex-shrink:0;}
+.dv{font-size:12px;}
+.dv.bad{color:#f48771;font-weight:700;}
+.dv.str{color:#ce9178;}
+.dv.num{color:#b5cea8;}
+.dv.cond{color:#dcdcaa;font-size:11.5px;}
+.dv.warn{color:#d97706;font-weight:600;}
+.sp{width:210px;overflow-y:auto;flex-shrink:0;border-left:1px solid #2d2d2d;}
+.sf{padding:5px 12px;border-bottom:1px solid #2a2a2a;cursor:pointer;}
+.sf:hover{background:#2a2d2e;}
+.sf.on{background:#094771;}
+.sf-fn{font-size:12px;color:#dcdcaa;}
+.sf-loc{font-size:10px;color:#858585;margin-top:1px;}
+.sf-loc span{color:#569cd6;}
 
 /* STATUS BAR */
-.statusbar { height:22px; background:#c0392b; display:flex; align-items:center; justify-content:space-between; padding:0 10px; flex-shrink:0; }
-.status-left { display:flex; gap:14px; }
-.status-item { font-size:11px; color:rgba(255,255,255,0.9); }
-.status-right { display:flex; gap:14px; }
+.sb{height:22px;background:#c0392b;display:flex;align-items:center;justify-content:space-between;padding:0 10px;flex-shrink:0;}
+.sb-l{display:flex;gap:12px;align-items:center;}
+.si{font-size:11px;color:rgba(255,255,255,0.92);}
+.sb-r{display:flex;gap:12px;}
 
-/* DEMO NAV */
-.demo-nav { position:fixed; bottom:28px; left:60px; display:flex; flex-direction:column; gap:5px; z-index:150; }
-.demo-step-label { font-size:10px; color:#858585; max-width:500px; line-height:1.5; }
-.demo-dots { display:flex; gap:5px; margin:2px 0; }
-.demo-dot { width:6px; height:6px; border-radius:50%; background:#3c3c3c; border:1px solid #555; cursor:pointer; transition:all 0.2s; }
-.demo-dot.active { background:#c0392b; border-color:#c0392b; width:18px; border-radius:3px; }
-.demo-btns { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
-.demo-btn { background:#2d2d30; border:1px solid #454545; color:#d4d4d4; padding:5px 11px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:2px; white-space:nowrap; }
-.demo-btn:hover { background:#3c3c3c; }
-.demo-btn.primary { background:#c0392b; border-color:#c0392b; color:white; }
-.demo-btn.primary:hover { background:#a93226; }
-.demo-btn.ghost { background:transparent; border-color:#3c3c3c; color:#858585; }
-.demo-btn.ghost:hover { color:#d4d4d4; }
+/* NAV */
+.nb{background:#2d2d30;border:1px solid #454545;color:#d4d4d4;padding:5px 11px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border-radius:2px;}
+.nb:hover{background:#3c3c3c;}
 </style>
 </head>
 <body>
 
 <!-- CONTEXT MENU -->
-<div class="ctx-menu" id="ctxMenu">
-  <div class="ctx-item">✂ Cut<span style="margin-left:auto;font-size:10px;color:#858585;">⌘X</span></div>
-  <div class="ctx-item">⎘ Copy<span style="margin-left:auto;font-size:10px;color:#858585;">⌘C</span></div>
-  <div class="ctx-item sep">🔍 Go to Definition<span style="margin-left:auto;font-size:10px;color:#858585;">F12</span></div>
-  <div class="ctx-item sep" id="ctxHp"><span class="ctx-hp">⬤</span><span class="ctx-hp"> Add Hyperprobe Breakpoint…</span></div>
-  <div class="ctx-item">🔖 Add Breakpoint<span style="margin-left:auto;font-size:10px;color:#858585;">F9</span></div>
+<div class="ctx" id="ctx">
+  <div class="ctx-it">✂ Cut<span class="ctx-sh">⌘X</span></div>
+  <div class="ctx-it">⎘ Copy<span class="ctx-sh">⌘C</span></div>
+  <div class="ctx-it sep">🔍 Go to Definition<span class="ctx-sh">F12</span></div>
+  <div class="ctx-it sep" id="ctxHP"><span class="ctx-hp">⬤</span><span class="ctx-hp"> Add Hyperprobe Breakpoint…</span></div>
+  <div class="ctx-it">🔖 Add Breakpoint<span class="ctx-sh">F9</span></div>
 </div>
 
 <!-- BP FORM -->
-<div class="overlay" id="bpOverlay">
-  <div class="bp-form">
-    <div class="bp-form-header">
-      <div class="bp-form-title"><span style="color:#c0392b;">⬤</span><span id="bpFormTitle">Add Hyperprobe Breakpoint — line 34</span></div>
-      <span class="bp-form-close" onclick="closeBpForm()">✕</span>
+<div class="ov" id="ov">
+  <div class="bpf">
+    <div class="bpf-hdr">
+      <div class="bpf-title"><span style="color:#c0392b">⬤</span> Add Hyperprobe Breakpoint — line 15</div>
+      <span class="bpf-x" id="bpfX">✕</span>
     </div>
-    <div class="bp-form-body">
-      <div class="bp-form-row">
-        <div class="bp-form-label">Condition <span class="bp-optional">optional</span></div>
-        <input class="bp-form-input" id="bpCondition" placeholder="e.g. user.tier == 'free' && balance == null">
-        <div class="bp-form-hint">Snapshot fires only when expression is true.</div>
+    <div class="bpf-body">
+      <div class="bpf-row">
+        <div class="bpf-lbl">Condition <span class="bpf-opt">optional</span></div>
+        <input class="bpf-in" placeholder="e.g. rule.promoCode == &quot;SALE20&quot;">
+        <div class="bpf-hint">Snapshot fires only when expression is true.</div>
       </div>
-      <div class="bp-form-2col">
-        <div class="bp-form-row">
-          <div class="bp-form-label">Hit Count</div>
-          <input class="bp-form-input" value="1">
-        </div>
-        <div class="bp-form-row">
-          <div class="bp-form-label">Rate Limit</div>
-          <input class="bp-form-input" value="10 / min">
-        </div>
+      <div class="bpf-2">
+        <div class="bpf-row"><div class="bpf-lbl">Hit Count</div><input class="bpf-in" value="1"></div>
+        <div class="bpf-row"><div class="bpf-lbl">Rate Limit</div><input class="bpf-in" value="10 / min"></div>
       </div>
-      <div class="bp-form-row">
-        <div class="bp-form-label">TTL</div>
-        <input class="bp-form-input" value="30m">
-        <div class="bp-form-hint">Breakpoint auto-deactivates after this time.</div>
+      <div class="bpf-row">
+        <div class="bpf-lbl">TTL</div>
+        <input class="bpf-in" value="30m">
+        <div class="bpf-hint">Auto-deactivates after this time.</div>
       </div>
     </div>
-    <div class="bp-form-footer">
-      <button class="bp-btn bp-btn-sec" onclick="closeBpForm()">Cancel</button>
-      <button class="bp-btn bp-btn-primary" onclick="activateBp()">Activate Breakpoint</button>
+    <div class="bpf-ftr">
+      <button class="bpf-btn bpf-sec" id="bpfCancel">Cancel</button>
+      <button class="bpf-btn bpf-pri" id="bpfActivate">Activate Breakpoint</button>
     </div>
   </div>
 </div>
 
-<div class="vscode">
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-t">⬤ Hyperprobe</div>
+  <div class="toast-b">Breakpoint active on 3 production instances</div>
+  <div class="toast-s">Nothing restarted · TTL: 30m · Rate: 10/min</div>
+</div>
+
+<!-- RESTART BUTTON -->
+<div style="position:fixed;bottom:28px;left:60px;z-index:600;">
+  <button class="nb" onclick="restart()">↺ Restart</button>
+</div>
+
+<div class="vs">
   <div class="titlebar">
     <div class="titlebar-dots">
-      <div class="titlebar-dot" style="background:#ff5f57;"></div>
-      <div class="titlebar-dot" style="background:#febc2e;"></div>
-      <div class="titlebar-dot" style="background:#28c840;"></div>
+      <div class="dot" style="background:#ff5f57"></div>
+      <div class="dot" style="background:#febc2e"></div>
+      <div class="dot" style="background:#28c840"></div>
     </div>
-    <div class="titlebar-title">PaymentService.java — payment-service [production] — Visual Studio Code</div>
-    <div class="titlebar-controls"><span>─</span><span>⬜</span><span>✕</span></div>
+    <div class="titlebar-title" id="ttl">FlashSalePricingProcessor.java — wms-commerce-service [production] — Visual Studio Code</div>
+    <div class="titlebar-ctrl"><span>─</span><span>⬜</span><span>✕</span></div>
   </div>
   <div class="menubar">
-    <div class="menu-item">File</div><div class="menu-item">Edit</div><div class="menu-item">View</div>
-    <div class="menu-item">Go</div><div class="menu-item">Run</div><div class="menu-item">Terminal</div>
-    <div class="menu-item" style="color:#c0392b;font-weight:600;">Hyperprobe</div>
-    <div class="menu-item">Help</div>
+    <div class="mi">File</div><div class="mi">Edit</div><div class="mi">View</div>
+    <div class="mi">Go</div><div class="mi">Run</div><div class="mi">Terminal</div>
+    <div class="mi hp">Hyperprobe</div>
+    <div class="mi">Help</div>
   </div>
 
-  <div class="main">
-    <!-- ACTIVITY BAR -->
-    <div class="activitybar">
-      <div class="activity-icon active" style="color:#c0392b;">⬤<div class="activity-badge" id="actBadge"></div></div>
-      <div class="activity-icon">📁</div>
-      <div class="activity-icon">🔍</div>
-      <div class="activity-icon">⎇</div>
-      <div class="activity-icon">🐛</div>
-      <div class="activity-icon" style="margin-top:auto;margin-bottom:8px;">⚙</div>
+  <div class="body">
+    <div class="ab">
+      <div class="abi on">📁</div>
+      <div class="abi">🔍</div>
+      <div class="abi">⎇</div>
+      <div class="abi">🐛</div>
+      <div class="abi hp on" style="margin-top:auto;margin-bottom:48px;">⬤<div class="ab-badge" id="actBadge"></div></div>
+      <div class="abi" style="margin-bottom:8px">⚙</div>
     </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-
-      <!-- Always-visible header -->
-      <div class="sidebar-header">
-        <span class="sidebar-dot"></span>
-        <span class="sidebar-name">Hyperprobe</span>
-        <span class="sidebar-badge">LIVE</span>
+    <div class="ls">
+      <div class="ls-hdr">Explorer</div>
+      <!-- START HINT -->
+      <div id="startHint" style="margin:10px 12px;padding:10px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);border-radius:2px;">
+        <div style="font-size:10px;font-weight:700;color:#c0392b;letter-spacing:0.5px;margin-bottom:5px;">▶ START HERE</div>
+        <div style="font-size:10px;color:#858585;line-height:1.7;">Right-click <span style="color:#4ec9b0;font-weight:600;">line 15</span> in the editor to add a <span style="color:#d4d4d4;font-weight:600;">Hyperprobe Breakpoint</span>.</div>
       </div>
-
-      <!-- Idle state (before AI is opened) -->
-      <div class="sidebar-idle" id="sidebarIdle">
-        <div class="idle-content">
-          <button class="btn-use-ai" onclick="openAI()">
-            <span style="font-size:12px;">⬤</span> Use AI to debug this
-          </button>
-          <div class="idle-divider">
-            <div class="idle-divider-line"></div>
-            <div class="idle-divider-text">or</div>
-            <div class="idle-divider-line"></div>
-          </div>
-          <div class="manual-hint-box">
-            <div class="manual-hint-title">Set breakpoints manually</div>
-            <div class="manual-hint-step"><span class="manual-hint-num">1.</span><span>Right-click any line in the editor</span></div>
-            <div class="manual-hint-step"><span class="manual-hint-num">2.</span><span>Select <span style="color:#c0392b;font-weight:600;">Add Hyperprobe Breakpoint…</span></span></div>
-            <div class="manual-hint-step"><span class="manual-hint-num">3.</span><span>Configure and activate. Repeat on more lines as needed.</span></div>
-          </div>
-        </div>
-        <!-- Manual BP list — shown once BPs are added -->
-        <div class="bp-sidebar-section" id="bpSidebarSection" style="display:none;">
-          <div class="bp-sidebar-hdr">Active Breakpoints <span class="bp-sidebar-count" id="bpCount">0</span></div>
-          <div class="bp-sidebar-list" id="bpSidebarList"></div>
-        </div>
+      <div class="ft">
+        <div class="fi folder">📁 src/main/java</div>
+        <div class="fi folder" style="padding-left:28px">📁 com.wms.pricing</div>
+        <div class="fi sel" style="padding-left:40px">☕ FlashSalePricingProcessor.java</div>
+        <div class="fi" style="padding-left:40px">☕ PromotionRule.java</div>
+        <div class="fi" style="padding-left:40px">☕ InventoryItem.java</div>
+        <div class="fi folder" style="padding-left:28px">📁 com.wms.commerce</div>
+        <div class="fi" style="padding-left:40px">☕ WMSCommerceService.java</div>
+        <div class="fi folder">📁 src/main/resources</div>
+        <div class="fi" style="padding-left:28px">📄 application.yml</div>
       </div>
-
-      <!-- AI chat (hidden until Use AI clicked) -->
-      <div class="ai-chat" id="aiChat">
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-area">
-          <textarea class="chat-input" id="chatInput" rows="1"
-            placeholder="Describe the incident…"
-            onkeydown="handleKey(event)"
-            oninput="autoResize(this)"></textarea>
-          <button class="chat-send" id="sendBtn" onclick="handleSend()">↵</button>
-        </div>
+      <div class="bpsec" id="bpSec" style="display:none">
+        <div class="bpsec-hdr">Breakpoints <span class="bpsec-n" id="bpN">0</span></div>
+        <div class="bplist" id="bpList"></div>
       </div>
-
     </div>
 
-    <!-- EDITOR -->
-    <div class="editor-area">
+    <div class="ed-area">
       <div class="tabbar">
-        <div class="tab active">☕ PaymentService.java <span style="font-size:14px;color:#969696;margin-left:4px;">✕</span></div>
-        <div class="tab">☕ BalanceService.java <span style="font-size:14px;color:#969696;margin-left:4px;">✕</span></div>
+        <div class="tab">
+          <span style="width:8px;height:8px;border-radius:50%;background:#c0392b;animation:pulse 2s ease-in-out infinite;flex-shrink:0;display:none;" id="tabDot"></span>
+          ☕ FlashSalePricingProcessor.java
+          <span style="font-size:14px;color:#969696;margin-left:4px">✕</span>
+        </div>
       </div>
-      <div class="editor-panel-split">
-        <div class="editor"><div class="code-scroll" id="codeContent"></div></div>
-        <div class="bottom-panel">
-          <div class="panel-tabs">
-            <div class="panel-tab">Terminal</div>
-            <div class="panel-tab">Problems</div>
-            <div class="panel-tab active">⬤ Hyperprobe Snapshots <span class="panel-tab-badge" id="snapBadge">0</span></div>
+
+      <div class="ed-split">
+        <div class="ed">
+          <!-- EDITOR HINT -->
+          <div class="ed-hint" id="edHint">
+            <span style="font-size:11px;color:#c0392b;font-weight:700;flex-shrink:0;">▶ NEXT</span>
+            <span style="font-size:11px;color:#858585;line-height:1.6;">Right-click <span style="color:#4ec9b0;font-weight:600;">line 15</span> to add a <span style="color:#d4d4d4;">Hyperprobe Breakpoint</span>. That line is where a promotion rule is applied — the exact moment the pricing decision is made.</span>
           </div>
-          <div class="panel-content" id="panelContent"></div>
+          <div class="cs" id="code"></div>
+        </div>
+
+        <div class="bot">
+          <div class="ptabs">
+            <div class="ptab">Terminal</div>
+            <div class="ptab">Problems</div>
+            <div class="ptab on">⬤ Hyperprobe <span class="ptab-n" id="snapN">0</span></div>
+          </div>
+          <div class="pc" id="pc"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="statusbar">
-    <div class="status-left">
-      <div class="status-item" id="statusBp">⬤ 0 breakpoints active</div>
-      <div class="status-item" id="statusSnaps">📸 0 snapshots</div>
+  <div class="sb">
+    <div class="sb-l">
+      <div class="si">⬤ main</div>
+      <div class="si" id="sbBp">⬤ 0 breakpoints active</div>
+      <div class="si" id="sbSnap">📸 0 snapshots</div>
     </div>
-    <div class="status-right">
-      <div class="status-item">Java 17</div>
-      <div class="status-item">production</div>
+    <div class="sb-r">
+      <div class="si">Java 17</div>
+      <div class="si">production</div>
+      <div class="si">Ln 15, Col 1</div>
     </div>
   </div>
-</div>
-
-<div class="demo-nav">
-  <div class="demo-step-label" id="stepLabel"></div>
-  <div class="demo-dots" id="demoDots"></div>
-  <div class="demo-btns" id="demoBtns"></div>
 </div>
 
 <script>
-// ════════════════════════════════════
+// ════════════════════════
 // CODE
-// ════════════════════════════════════
-const CODE = [
-  {n:28, code:'<span class="cm">// Process payment for the given order</span>'},
-  {n:29, code:'<span class="kw">@Override</span>'},
-  {n:30, code:'<span class="kw">public</span> <span class="ty">PaymentResult</span> <span class="fn">processPayment</span>(<span class="ty">Order</span> <span class="va">order</span>) {'},
-  {n:31, code:'    <span class="ty">Connection</span> <span class="va">conn</span> = <span class="va">dbPool</span>.<span class="fn">getConnection</span>(<span class="va">timeout</span>);', lid:'line31'},
-  {n:32, code:'    <span class="ty">String</span> <span class="va">userId</span> = <span class="va">order</span>.<span class="fn">getUserId</span>();'},
-  {n:33, code:'    <span class="ty">double</span> <span class="va">amount</span> = <span class="va">order</span>.<span class="fn">getTotal</span>();'},
-  {n:34, code:'    <span class="ty">Balance</span> <span class="va">balance</span> = <span class="fn">getBalance</span>(<span class="va">userId</span>);', lid:'line34'},
-  {n:35, code:''},
-  {n:36, code:'    <span class="kw">if</span> (<span class="va">balance</span> == <span class="kw">null</span> || <span class="va">balance</span>.<span class="prop">amount</span> &lt; <span class="va">amount</span>) {'},
-  {n:37, code:'        <span class="kw">throw new</span> <span class="ty">InsufficientFundsException</span>();'},
-  {n:38, code:'    }'},
-  {n:39, code:''},
-  {n:40, code:'    <span class="va">ledger</span>.<span class="fn">deduct</span>(<span class="va">userId</span>, <span class="va">amount</span>);'},
-  {n:41, code:'    <span class="fn">notify</span>(<span class="va">order</span>.<span class="fn">getUser</span>(), <span class="st">"success"</span>);'},
-  {n:42, code:'    <span class="kw">return</span> <span class="ty">PaymentResult</span>.<span class="fn">success</span>();'},
+// ════════════════════════
+var CODE = [
+  {n:1,  c:'<span class="kw">package</span> com.wms.pricing;'},
+  {n:2,  c:''},
+  {n:3,  c:'<span class="kw">import</span> com.wms.model.InventoryItem;'},
+  {n:4,  c:'<span class="kw">import</span> com.wms.model.PromotionRule;'},
+  {n:5,  c:''},
+  {n:6,  c:'<span class="kw">public class</span> <span class="ty">FlashSalePricingProcessor</span> {'},
+  {n:7,  c:''},
+  {n:8,  c:'    <span class="kw">public</span> <span class="ty">Double</span> <span class="fn">process</span>(<span class="ty">Map.Entry</span>&lt;<span class="ty">String</span>, <span class="ty">InventoryItem</span>&gt; entry) {'},
+  {n:9,  c:'        <span class="ty">InventoryItem</span> item = entry.getValue();'},
+  {n:10, c:''},
+  {n:11, c:'        <span class="kw">double</span> price = item.getBasePrice();'},
+  {n:12, c:''},
+  {n:13, c:'        <span class="kw">for</span> (<span class="ty">PromotionRule</span> rule : item.getApplicableRules()) {'},
+  {n:14, c:'            <span class="kw">if</span> (rule.isEligible(customerId, item)) {'},
+  {n:15, c:'                price = rule.apply(price);', bp:true},
+  {n:16, c:'            }'},
+  {n:17, c:'        }'},
+  {n:18, c:''},
+  {n:19, c:'        <span class="kw">return</span> price;'},
+  {n:20, c:'    }'},
+  {n:21, c:''},
+  {n:22, c:'}'},
 ];
 
-// ════════════════════════════════════
-// SNAPSHOT DATA
-// ════════════════════════════════════
-const SNAP_DATA = {
-  line31: {
-    id:1, lineLabel:'line 31', fn:'processPayment()', time:'23:04:19.389', summary:'conn = null',
-    vars:`
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>Local Variables</div><div class="dbg-section-body">
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">conn</span><span class="dbg-eq">=</span><span class="dbg-val null">null</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← pool timed out after 3,000ms</span></div>
-        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">timeout</span><span class="dbg-eq">=</span><span class="dbg-val num">3000</span></div>
-        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">userId</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
-      </div></div>
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>DB State</div><div class="dbg-section-body">
-        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.active</span><span class="dbg-eq">=</span><span class="dbg-val warn">5 / 5 in use</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← exhausted</span></div>
-        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.waiting</span><span class="dbg-eq">=</span><span class="dbg-val warn">12 queued</span></div>
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">db.conn</span><span class="dbg-eq">=</span><span class="dbg-val null">timeout (3,000ms)</span></div>
-      </div></div>
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>User Context</div><div class="dbg-section-body">
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">user.tier</span><span class="dbg-eq">=</span><span class="dbg-val str">"free"</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← 89% of failures</span></div>
-      </div></div>`,
-    stack:[
-      {fn:'processPayment()',loc:'PaymentService.java',line:31,active:true},
-      {fn:'handleRequest()', loc:'OrderHandler.java',  line:112},
-      {fn:'doFilter()',       loc:'RequestFilter.java', line:67},
-      {fn:'execute()',        loc:'HttpServlet.java',   line:655},
-    ]
-  },
-  line34: {
-    id:2, lineLabel:'line 34', fn:'processPayment()', time:'23:04:19.441', summary:'balance = null',
-    vars:`
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>Local Variables</div><div class="dbg-section-body">
-        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">userId</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
-        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">amount</span><span class="dbg-eq">=</span><span class="dbg-val num">299.99</span></div>
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">balance</span><span class="dbg-eq">=</span><span class="dbg-val null">null</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← DB returned null silently</span></div>
-      </div></div>
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>DB State</div><div class="dbg-section-body">
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">db.conn</span><span class="dbg-eq">=</span><span class="dbg-val null">timeout (3,000ms)</span></div>
-        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.active</span><span class="dbg-eq">=</span><span class="dbg-val warn">5 / 5 in use</span></div>
-        <div class="dbg-row warn"><span class="dbg-expand"></span><span class="dbg-name">db.pool.waiting</span><span class="dbg-eq">=</span><span class="dbg-val warn">12 queued</span></div>
-      </div></div>
-      <div class="dbg-section"><div class="dbg-section-hdr open" onclick="toggleSection(this)"><span class="dbg-arrow">▾</span>User Context</div><div class="dbg-section-body">
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name">user.tier</span><span class="dbg-eq">=</span><span class="dbg-val str">"free"</span><span style="color:#858585;font-size:10px;font-style:italic;margin-left:8px;">← 89% of failures</span></div>
-        <div class="dbg-row"><span class="dbg-expand"></span><span class="dbg-name">user.id</span><span class="dbg-eq">=</span><span class="dbg-val str">"usr_9182"</span></div>
-      </div></div>
-      <div class="dbg-section"><div class="dbg-section-hdr" onclick="toggleSection(this)"><span class="dbg-arrow">▶</span>Watch</div><div class="dbg-section-body" style="display:none;">
-        <div class="dbg-row bad"><span class="dbg-expand"></span><span class="dbg-name" style="color:#dcdcaa;font-style:italic;">balance == null</span><span class="dbg-eq">:</span><span class="dbg-val bool">true</span></div>
-        <div class="dbg-add-watch">+ Add expression…</div>
-      </div></div>`,
-    stack:[
-      {fn:'processPayment()',loc:'PaymentService.java',line:34,active:true},
-      {fn:'handleRequest()', loc:'OrderHandler.java',  line:112},
-      {fn:'doFilter()',       loc:'RequestFilter.java', line:67},
-      {fn:'execute()',        loc:'HttpServlet.java',   line:655},
-    ]
-  }
-};
+var FRAMES = [
+  {fn:'process()',        file:'FlashSalePricingProcessor.java', ln:15, useMain:true},
+  {fn:'execute()',        file:'HazelCastEntryRunner.java',      ln:44, code:[
+    {n:41,c:'        <span class="kw">for</span> (<span class="ty">Map.Entry</span> entry : map.entrySet()) {'},
+    {n:42,c:'            <span class="ty">Object</span> result = processor.process(entry);'},
+    {n:43,c:'            <span class="kw">if</span> (result != <span class="kw">null</span>) results.add(result);'},
+    {n:44,c:'        }',fr:true},
+    {n:45,c:'        <span class="kw">return</span> results;'},
+  ]},
+  {fn:'handleRequest()',  file:'WMSCommerceService.java',        ln:112, code:[
+    {n:109,c:'        <span class="ty">PricingResult</span> result = engine.run(request.getItems());'},
+    {n:110,c:'        <span class="kw">if</span> (result.hasErrors()) <span class="kw">throw new</span> <span class="ty">PricingException</span>(result);'},
+    {n:111,c:'        order.setFinalPrice(result.getTotal());'},
+    {n:112,c:'        <span class="kw">return</span> ResponseEntity.ok(order);',fr:true},
+    {n:113,c:'    }'},
+  ]},
+];
 
-// ════════════════════════════════════
+var FV = [
+  // Frame 0 — process(), line 15 — loop state + local vars
+  {loop:[
+    {k:'iteration',           v:'<span class="dv warn">3 of 6</span>'},
+    {k:'rule.name',           v:'<span class="dv str">"PROMO_CODE_DISCOUNT"</span>'},
+    {k:'rule.promoCode',      v:'<span class="dv str">"SALE20"</span>'},
+    {k:'rule.discountPct',    v:'<span class="dv num">0.20</span>'},
+    {k:'rule.eligibilityCheck', v:'<span class="dv cond">CUSTOMER_TIER == <span class="dv str">"GOLD"</span></span>', bad:true},
+  ], local:[
+    {k:'price',               v:'<span class="dv num">268.00</span>'},
+    {k:'customerId',          v:'<span class="dv str">"MCY-88421"</span>'},
+    {k:'item.basePrice',      v:'<span class="dv num">268.00</span>'},
+    {k:'item.category',       v:'<span class="dv str">"OUTERWEAR"</span>'},
+    {k:'item.customerTier',   v:'<span class="dv bad">"SILVER"</span>', bad:true},
+  ]},
+  // Frame 1 — execute()
+  {loop:[], local:[
+    {k:'entry.key',           v:'<span class="dv str">"SKU-JKT-9921"</span>'},
+    {k:'result',              v:'<span class="dv" style="color:#858585;font-style:italic">null ← not yet returned</span>'},
+  ]},
+  // Frame 2 — handleRequest()
+  {loop:[], local:[
+    {k:'request.orderId',     v:'<span class="dv str">"ord_99812"</span>'},
+    {k:'result',              v:'<span class="dv" style="color:#858585;font-style:italic">null ← not yet returned</span>'},
+  ]},
+];
+
+// ════════════════════════
 // STATE
-// ════════════════════════════════════
-let aiOpen = false;          // has dev clicked "Use AI"
-let aiStep = 0;              // 0-6 drives AI chat flow
-let aiInputLocked = false;
-const chatMsgList = [];
+// ════════════════════════
+var snapped=false, activeFrame=0;
 
-// Manual breakpoints (works regardless of aiOpen)
-let manualBPs = [];          // [{lid, lineNum, condition}]
-let manualSnaps = [];        // [lid] order fired
-
-// All snapshots for bottom panel (merges AI + manual)
-let selectedSnap = 0;
-
-// Context menu target
-let ctxTarget = null;
-
-// ════════════════════════════════════
-// SIDEBAR: open AI chat
-// ════════════════════════════════════
-function openAI() {
-  aiOpen = true;
-  document.getElementById('sidebarIdle').style.display = 'none';
-  document.getElementById('aiChat').classList.add('open');
-  renderNav();
-}
-
-// ════════════════════════════════════
+// ════════════════════════
 // RENDER CODE
-// ════════════════════════════════════
-function renderCode() {
-  document.getElementById('codeContent').innerHTML = CODE.map(L => {
-    if (!L.lid) {
-      return `<div class="code-line" oncontextmenu="event.preventDefault()"><span class="line-gutter"></span><span class="line-num">${L.n}</span><span class="line-code">${L.code}</span></div>`;
-    }
-
-    // Determine state for this line
-    const aiProposed = aiOpen && aiStep === 2;
-    const aiActive   = aiOpen && aiStep >= 3;
-    const manBP      = manualBPs.find(b => b.lid === L.lid);
-    const manSnapped = manualSnaps.includes(L.lid);
-
-    // AI snaps
-    const aiSnap31 = aiOpen && aiStep >= 4 && L.lid === 'line31';
-    const aiSnap34 = aiOpen && aiStep >= 5 && L.lid === 'line34';
-    const aiWait34 = aiOpen && aiStep === 4 && L.lid === 'line34';
-
-    const isActive = aiActive || !!manBP;
-    const cls = 'code-line' + (isActive ? (L.lid==='line34' ? ' bp-line' : ' bp-line2') : '');
-
-    let gutter = `<span class="line-gutter"></span>`;
-    let ghost  = '';
-    const ctx  = `oncontextmenu="showCtx(event,'${L.lid}',${L.n})"`;
-
-    // Gutter dot
-    if (aiProposed && !manBP) {
-      gutter = `<span class="line-gutter"><span class="bp-dot-proposed"></span></span>`;
-    } else if (isActive) {
-      gutter = `<span class="line-gutter"><span class="bp-dot"></span></span>`;
-    }
-
-    // Ghost text — AI takes priority over manual for same line
-    if (aiProposed && !manBP)  ghost = `<span class="inline-ghost">// AI proposed · pending approval</span>`;
-    else if (aiActive && !aiSnap31 && !aiSnap34 && !aiWait34 && aiStep===3) ghost = `<span class="inline-ghost">// ⬤ active · waiting…</span>`;
-    else if (aiSnap31)         ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
-    else if (aiWait34)         ghost = `<span class="inline-ghost">// ⬤ active · waiting…</span>`;
-    else if (aiSnap34)         ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
-    else if (manBP && manSnapped) ghost = `<span class="inline-ghost">// ⬤ 1 snapshot captured</span>`;
-    else if (manBP)            ghost = `<span class="inline-ghost">// ⬤ active · ${manBP.condition||'waiting…'}</span>`;
-
-    return `<div class="${cls}" ${ctx}>${gutter}<span class="line-num">${L.n}</span><span class="line-code">${L.code}${ghost}</span></div>`;
+// ════════════════════════
+function renderCode(){
+  var el=document.getElementById('code');
+  if(activeFrame!==0){
+    var f=FRAMES[activeFrame];
+    el.innerHTML=f.code.map(function(L){
+      var cls='cl'+(L.fr?' frl':'');
+      var g=L.fr?'<span class="gutter"><span style="width:8px;height:8px;border-radius:50%;background:#569cd6;"></span></span>':'<span class="gutter"></span>';
+      return '<div class="'+cls+'" style="'+(L.fr?'background:rgba(86,156,214,0.12)':'')+'">'+g+'<span class="ln">'+L.n+'</span><span class="lc">'+L.c+'</span></div>';
+    }).join('');
+    return;
+  }
+  el.innerHTML=CODE.map(function(L){
+    if(!L.bp)return '<div class="cl" oncontextmenu="showCtx(event,'+L.n+')"><span class="gutter"></span><span class="ln">'+L.n+'</span><span class="lc">'+L.c+'</span></div>';
+    var bpActive=document.getElementById('bpSec').style.display!=='none';
+    var cls='cl'+(bpActive?' bpl':'');
+    var g='<span class="gutter"></span>';
+    var gh='';
+    if(bpActive&&!snapped){g='<span class="gutter"><span class="bp-outer"><span class="bp-bolt">⚡</span></span></span>';gh='<span class="ghost">// ⬤ active · waiting for next request…</span>';}
+    if(bpActive&&snapped) {g='<span class="gutter"><span class="bp-outer"><span class="bp-bolt">⚡</span></span></span>';gh='<span class="ghost">// ⬤ snapshot captured</span>';}
+    return '<div class="'+cls+'" oncontextmenu="showCtx(event,15)">'+g+'<span class="ln">'+L.n+'</span><span class="lc">'+L.c+gh+'</span></div>';
   }).join('');
 }
 
-// ════════════════════════════════════
-// RENDER BOTTOM PANEL
-// ════════════════════════════════════
-function allSnapKeys() {
-  const keys = [];
-  // AI snaps first (in order)
-  if (aiOpen && aiStep >= 4) keys.push('line31');
-  if (aiOpen && aiStep >= 5) keys.push('line34');
-  // Manual snaps (deduplicated)
-  manualSnaps.forEach(k => { if (!keys.includes(k)) keys.push(k); });
-  return keys;
+// ════════════════════════
+// SELECT FRAME
+// ════════════════════════
+function selectFrame(i){
+  activeFrame=i;
+  var f=FRAMES[i];
+  document.getElementById('ttl').textContent=f.file+' — wms-commerce-service [production] — Visual Studio Code';
+  document.getElementById('tabbar') && null;
+  document.getElementById('sbLn') && null;
+  renderCode();
+  renderPanel();
 }
 
-function renderPanel() {
-  const pc = document.getElementById('panelContent');
+// ════════════════════════
+// RENDER PANEL
+// ════════════════════════
+function renderPanel(){
+  var pc=document.getElementById('pc');
 
-  // Count active BPs
-  const bpCount = (aiOpen && aiStep >= 3 ? 2 : 0) + manualBPs.length;
-  const snapKeys = allSnapKeys();
-  const hasSnaps = snapKeys.length > 0;
-
-  // Nothing active
-  if (bpCount === 0) {
-    pc.innerHTML = `
-      <div class="snapshot-feed"><div class="feed-header">Snapshots</div>
-        <div class="feed-empty">📸<br><br>No snapshots yet.<br>Use AI or right-click a<br>line to add a breakpoint.</div>
-      </div>
-      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2.2;">Activate breakpoints<br>to capture runtime state.</div>`;
+  if(document.getElementById('bpSec').style.display==='none'){
+    pc.innerHTML='<div class="feed"><div class="feed-hdr">Snapshots</div><div class="feed-empty">📸<br><br>No snapshots yet.<br><br>Right-click line 15 and add<br>a Hyperprobe Breakpoint.</div></div>'
+      +'<div class="snap-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2">Activate a breakpoint<br>to capture live state.</div>';
     return;
   }
 
-  // BPs active but no snaps yet
-  if (!hasSnaps) {
-    const txt = bpCount === 2 ? '2 breakpoints active<br>lines 31 &amp; 34' : `${bpCount} breakpoint${bpCount>1?'s':''} active`;
-    pc.innerHTML = `
-      <div class="snapshot-feed"><div class="feed-header">Snapshots</div>
-        <div class="feed-waiting"><div class="waiting-spinner"></div><div>${txt}<br><br>Waiting for next request…</div></div>
-      </div>
-      <div class="snapshot-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2.2;">Snapshot fires on next<br>matching request.</div>`;
+  if(!snapped){
+    pc.innerHTML='<div class="feed"><div class="feed-hdr">Snapshots</div><div class="feed-wait"><div class="spinner"></div><div>Breakpoint active · line 15<br><br>Waiting for next pricing request…</div></div></div>'
+      +'<div class="snap-detail" style="display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;text-align:center;line-height:2">Snapshot fires on<br>next matching request.</div>';
     return;
   }
 
-  const stillWaiting = aiOpen && aiStep === 4; // snap1 done, snap2 pending
-  const sel = Math.min(selectedSnap, snapKeys.length - 1);
-  const snap = SNAP_DATA[snapKeys[sel]];
-  const stackHTML = snap.stack.map(f =>
-    `<div class="stack-frame ${f.active?'active':''}"><div class="stack-fn">${f.fn}</div><div class="stack-loc">${f.loc} · <span>line ${f.line}</span></div></div>`
-  ).join('');
+  var fvData=FV[activeFrame];
+  var dl=FRAMES[activeFrame].fn+' · line '+FRAMES[activeFrame].ln;
 
-  pc.innerHTML = `
-    <div class="snapshot-feed">
-      <div class="feed-header">Snapshots</div>
-      <div class="feed-list">
-        ${snapKeys.map((k, i) => { const s=SNAP_DATA[k]; return `
-          <div class="feed-item ${i===sel?'sel':''}" onclick="selectSnap(${i})">
-            <div class="fi-top"><span class="fi-line">${s.lineLabel}</span><span class="fi-time">${s.time}</span></div>
-            <div class="fi-fn">${s.fn}</div>
-            <div class="fi-summary"><span class="bad">${s.summary}</span></div>
-          </div>`; }).join('')}
-      </div>
-      ${stillWaiting ? `<div class="feed-waiting" style="padding:10px 12px;"><div class="waiting-spinner"></div><div style="font-size:10px;color:#6a9955;">Line 31 ✓ &nbsp;·&nbsp; Line 34 waiting…</div></div>` : ''}
-    </div>
-    <div class="snapshot-detail">
-      <div class="detail-header">
-        <div class="detail-title"><span class="detail-badge">SNAPSHOT #${snap.id}</span>${snap.fn} · ${snap.lineLabel}</div>
-        <div class="detail-meta"><span>${snap.time} UTC</span><span>http-nio-8080-exec-3</span></div>
-      </div>
-      <div class="detail-body">
-        <div class="vars-pane">${snap.vars}</div>
-        <div class="stack-pane"><div class="pane-title">Call Stack</div>${stackHTML}</div>
-      </div>
-    </div>`;
+  var loopHTML='';
+  if(fvData.loop.length>0){
+    loopHTML='<div class="ds"><div class="ds-hdr open"><span class="ds-arr">▾</span><span style="color:#dcdcaa">Loop State</span></div><div>'
+      +fvData.loop.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn loop">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
+      +'</div></div>';
+  }
+
+  var localHTML='<div class="ds"><div class="ds-hdr open"><span class="ds-arr">▾</span><span style="color:#9cdcfe">Local Variables</span></div><div>'
+    +fvData.local.map(function(r){return '<div class="dr'+(r.bad?' bad':'')+'"><span class="dn">'+r.k+'</span><span class="de">=</span>'+r.v+'</div>';}).join('')
+    +'</div></div>';
+
+  var stackHTML=FRAMES.map(function(f,i){
+    return '<div class="sf'+(i===activeFrame?' on':'')+'" onclick="selectFrame('+i+')" style="cursor:pointer"><div class="sf-fn">'+f.fn+'</div><div class="sf-loc">'+f.file+' · <span>line '+f.ln+'</span></div></div>';
+  }).join('');
+
+  pc.innerHTML='<div class="feed"><div class="feed-hdr">Snapshots</div>'
+    +'<div class="fit on"><div class="fi-top"><span class="fi-ln">line 15</span><span class="fi-time">14:32:07.441</span></div>'
+    +'<div class="fi-fn">process() · iteration 3 of 6</div>'
+    +'<div class="fi-bad">rule.eligibilityCheck mismatch</div></div>'
+    +'</div>'
+    +'<div class="snap-detail">'
+    +'<div class="dh"><div class="dh-title"><span class="dh-badge">SNAPSHOT #1</span>'+dl+'</div>'
+    +'<div class="dh-meta"><span>2024-01-15 14:32:07 UTC</span><span>ord_99812</span><span style="color:#f48771;font-weight:600">production</span></div></div>'
+    +'<div class="dbody"><div class="vp"><div class="pane-title">Variables</div>'+loopHTML+localHTML+'</div>'
+    +'<div class="sp"><div class="pane-title">Call Stack</div>'+stackHTML+'</div>'
+    +'</div></div>';
 }
 
-function selectSnap(i) { selectedSnap = i; renderPanel(); }
-
-// ════════════════════════════════════
-// STATUS BAR
-// ════════════════════════════════════
-function renderStatus() {
-  const bps  = (aiOpen && aiStep >= 3 ? 2 : 0) + manualBPs.length;
-  const snps = allSnapKeys().length;
-  document.getElementById('statusBp').textContent    = `⬤ ${bps} breakpoint${bps!==1?'s':''} active`;
-  document.getElementById('statusSnaps').textContent = `📸 ${snps} snapshot${snps!==1?'s':''}`;
-  document.getElementById('snapBadge').textContent   = snps;
-  document.getElementById('actBadge').style.display  = snps > 0 ? 'block' : 'none';
+// ════════════════════════
+// STATUS
+// ════════════════════════
+function renderStatus(){
+  var bpActive=document.getElementById('bpSec').style.display!=='none';
+  document.getElementById('sbBp').textContent='⬤ '+(bpActive?'1':'0')+' breakpoint'+(bpActive?'':'s')+' active';
+  document.getElementById('sbSnap').textContent='📸 '+(snapped?'1':'0')+' snapshot'+(snapped?'':'s');
+  document.getElementById('snapN').textContent=snapped?'1':'0';
+  document.getElementById('actBadge').style.display=snapped?'block':'none';
+  document.getElementById('tabDot').style.display=bpActive?'inline-block':'none';
 }
 
-// ════════════════════════════════════
-// MANUAL BREAKPOINTS
-// ════════════════════════════════════
-function showCtx(e, lid, lineNum) {
+// ════════════════════════
+// CONTEXT MENU + FORM
+// ════════════════════════
+function showCtx(e,n){
   e.preventDefault();
-  ctxTarget = { lid, lineNum };
-  document.getElementById('bpFormTitle').textContent = `Add Hyperprobe Breakpoint — line ${lineNum}`;
-  document.getElementById('bpCondition').value = lid==='line34' ? "user.tier == 'free'" : '';
-  const m = document.getElementById('ctxMenu');
-  m.style.left = e.clientX+'px'; m.style.top = e.clientY+'px';
-  m.classList.add('visible');
+  var m=document.getElementById('ctx');
+  m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px';
+  m.classList.add('show');
+  // hide hint on first right-click
+  var h=document.getElementById('edHint'); if(h) h.style.display='none';
+  var sh=document.getElementById('startHint'); if(sh) sh.style.display='none';
 }
 
-document.addEventListener('click', e => {
-  const m = document.getElementById('ctxMenu');
-  if (m.classList.contains('visible')) {
-    if (e.target.closest('#ctxHp')) {
-      m.classList.remove('visible');
-      document.getElementById('bpOverlay').classList.add('visible');
-      return;
-    }
-    m.classList.remove('visible');
+document.addEventListener('click',function(e){
+  var m=document.getElementById('ctx');
+  if(m.classList.contains('show')){
+    if(e.target.closest('#ctxHP')){m.classList.remove('show');document.getElementById('ov').classList.add('show');return;}
+    m.classList.remove('show');
   }
 });
 
-function closeBpForm() { document.getElementById('bpOverlay').classList.remove('visible'); }
+document.getElementById('bpfX').onclick=function(){document.getElementById('ov').classList.remove('show');};
+document.getElementById('bpfCancel').onclick=function(){document.getElementById('ov').classList.remove('show');};
+document.getElementById('bpfActivate').onclick=function(){
+  document.getElementById('ov').classList.remove('show');
+  // show BP in sidebar
+  document.getElementById('bpSec').style.display='block';
+  document.getElementById('bpN').textContent='1';
+  document.getElementById('bpList').innerHTML='<div class="bpi"><span class="bpi-dot"></span><div class="bpi-info"><div class="bpi-ln">line 15</div><div class="bpi-fn">process()</div></div><span class="bpi-b bpi-w">WAITING</span></div>';
+  renderCode(); renderPanel(); renderStatus();
+  // toast
+  setTimeout(function(){
+    document.getElementById('toast').classList.add('show');
+    setTimeout(function(){document.getElementById('toast').classList.remove('show');},3000);
+  },400);
+  // fire snapshot after 3s
+  setTimeout(function(){
+    snapped=true;
+    activeFrame=0;
+    document.getElementById('bpList').innerHTML='<div class="bpi"><span class="bpi-dot"></span><div class="bpi-info"><div class="bpi-ln">line 15</div><div class="bpi-fn">process()</div></div><span class="bpi-b bpi-c">CAPTURED</span></div>';
+    renderCode(); renderPanel(); renderStatus();
+  },3000);
+};
 
-function activateBp() {
-  if (!ctxTarget) return;
-  const cond = document.getElementById('bpCondition').value.trim();
-  if (!manualBPs.find(b => b.lid === ctxTarget.lid)) {
-    manualBPs.push({ lid: ctxTarget.lid, lineNum: ctxTarget.lineNum, condition: cond });
-  }
-  closeBpForm();
-  renderBPSidebar();
-  renderCode(); renderPanel(); renderStatus(); renderNav();
-
-  // Auto-fire snapshot after 2.5s
-  const lid = ctxTarget.lid;
-  setTimeout(() => {
-    if (!manualSnaps.includes(lid)) {
-      manualSnaps.push(lid);
-      selectedSnap = allSnapKeys().length - 1;
-      renderCode(); renderPanel(); renderStatus(); renderNav();
-    }
-  }, 2500);
+// ════════════════════════
+// RESTART
+// ════════════════════════
+function restart(){
+  snapped=false; activeFrame=0;
+  document.getElementById('bpSec').style.display='none';
+  document.getElementById('bpList').innerHTML='';
+  document.getElementById('bpN').textContent='0';
+  document.getElementById('ttl').textContent='FlashSalePricingProcessor.java — wms-commerce-service [production] — Visual Studio Code';
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('ctx').classList.remove('show');
+  document.getElementById('toast').classList.remove('show');
+  document.getElementById('actBadge').style.display='none';
+  document.getElementById('tabDot').style.display='none';
+  var sh=document.getElementById('startHint'); if(sh) sh.style.display='block';
+  var eh=document.getElementById('edHint'); if(eh) eh.style.display='flex';
+  renderCode(); renderPanel(); renderStatus();
 }
 
-function renderBPSidebar() {
-  const sec = document.getElementById('bpSidebarSection');
-  if (!sec) return;
-  if (manualBPs.length === 0) { sec.style.display='none'; return; }
-  sec.style.display = 'block';
-  document.getElementById('bpCount').textContent = manualBPs.length;
-  document.getElementById('bpSidebarList').innerHTML = manualBPs.map(bp => {
-    const snapped = manualSnaps.includes(bp.lid);
-    return `<div class="bp-sidebar-item">
-      <span class="bpi-dot"></span>
-      <div class="bpi-info">
-        <div class="bpi-line">line ${bp.lineNum}</div>
-        <div class="bpi-fn">${bp.lid==='line31'?'dbPool.getConnection()':'getBalance(userId)'}</div>
-        ${bp.condition?`<div class="bpi-cond">${bp.condition}</div>`:''}
-      </div>
-      <span class="bpi-status ${snapped?'bpi-captured':'bpi-waiting'}">${snapped?'CAPTURED':'WAITING'}</span>
-    </div>`;
-  }).join('');
-}
-
-// ════════════════════════════════════
-// AI CHAT
-// ════════════════════════════════════
-function addMsg(who, html) {
-  chatMsgList.push({ who, html });
-  document.getElementById('chatMessages').innerHTML = chatMsgList.map(m => {
-    const u = m.who==='dev';
-    return `<div class="msg ${u?'msg-dev':''}">
-      <div class="avatar ${u?'avatar-dev':'avatar-ai'}">${u?'DEV':'AI'}</div>
-      <div class="bubble ${u?'bubble-dev':'bubble-ai'}">${m.html}</div>
-    </div>`;
-  }).join('');
-  setTimeout(() => {
-    const cm = document.getElementById('chatMessages');
-    if (cm) cm.scrollTop = cm.scrollHeight;
-  }, 40);
-}
-
-function showTyping() {
-  const cm = document.getElementById('chatMessages');
-  const el = document.createElement('div');
-  el.className='msg'; el.id='typingRow';
-  el.innerHTML=`<div class="avatar avatar-ai">AI</div><div class="bubble bubble-ai"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  cm.appendChild(el);
-  setTimeout(()=>{ cm.scrollTop=cm.scrollHeight; }, 40);
-}
-
-function hideTyping() { const el=document.getElementById('typingRow'); if(el)el.remove(); }
-function lockInput()   { aiInputLocked=true;  document.getElementById('sendBtn').disabled=true;  document.getElementById('chatInput').disabled=true;  document.getElementById('chatInput').placeholder='Waiting…'; }
-function unlockInput() { aiInputLocked=false; document.getElementById('sendBtn').disabled=false; document.getElementById('chatInput').disabled=false; document.getElementById('chatInput').placeholder='Ask a follow-up…'; }
-function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();} }
-function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,72)+'px'; }
-
-function handleSend() {
-  if (aiInputLocked) return;
-  const inp = document.getElementById('chatInput');
-  const val = inp.value.trim(); if (!val) return;
-  inp.value=''; inp.style.height='auto';
-
-  if (aiStep===0) {
-    addMsg('dev', val); lockInput();
-    aiStep=1; renderAll();
-    setTimeout(()=>showTyping(), 400);
-    setTimeout(()=>{
-      hideTyping();
-      addMsg('ai', proposalHTML());
-      aiStep=2; renderAll();
-      setTimeout(wireApprove, 50);
-    }, 2200);
-  } else if (aiStep>=6) {
-    addMsg('dev', val);
-    setTimeout(()=>showTyping(), 300);
-    setTimeout(()=>{ hideTyping(); addMsg('ai', followupReply(val)); }, 1400);
-  }
-}
-
-function wireApprove() {
-  const btn=document.getElementById('approveBtn');
-  if(btn&&!btn._wired){btn._wired=true;btn.onclick=handleApprove;}
-}
-
-function proposalHTML() {
-  return `Checked the Safety Map for <code>payment-service v2.4.1</code>. Two highest-risk nodes:
-
-<div class="bp-proposal">
-  <div class="bp-proposal-item">
-    <div><span class="bpi-label">Line 31 —</span><span class="bpi-fn-name">dbPool.getConnection(timeout)</span></div>
-    <div class="bpi-reason">New DB call in this release. If pool is saturated this times out and returns null — silently.</div>
-  </div>
-  <div class="bp-proposal-item">
-    <div><span class="bpi-label">Line 34 —</span><span class="bpi-fn-name">getBalance(userId)</span></div>
-    <div class="bpi-reason">Returns null on DB timeout. Caller treats null as zero balance → throws wrong InsufficientFunds error.</div>
-  </div>
-</div>
-
-Non-breaking breakpoints on both lines — no redeploy, zero production impact.
-
-<div class="bp-actions">
-  <button class="btn-approve" id="approveBtn">✓ Approve &amp; Activate</button>
-  <button class="btn-dismiss" onclick="handleDismiss()">Dismiss</button>
-</div>`;
-}
-
-function handleApprove() {
-  const btn=document.getElementById('approveBtn');
-  if(btn){btn.disabled=true;btn.textContent='✓ Approved';}
-  const dis=btn&&btn.nextElementSibling; if(dis)dis.style.display='none';
-  addMsg('dev','Approved.');
-  aiStep=3; renderAll();
-  setTimeout(()=>{ addMsg('ai',`<div class="chat-waiting"><div class="chat-spinner"></div>2 breakpoints live on lines 31 &amp; 34. Waiting for next request…</div>`); }, 400);
-  setTimeout(()=>{ aiStep=4; selectedSnap=0; renderAll(); }, 2500);
-  setTimeout(()=>{ aiStep=5; selectedSnap=1; renderAll(); }, 4500);
-  setTimeout(()=>{ aiStep=6; addMsg('ai', diagnosisHTML()); unlockInput(); renderAll(); }, 6000);
-}
-
-function handleDismiss() {
-  addMsg('dev','Dismissed.');
-  addMsg('ai','No problem. Describe the incident in more detail or point me to a specific function and I\'ll try again.');
-}
-
-const FOLLOWUPS = [
-  {match:['why free','free tier'],  reply:'Free-tier users share a single HikariCP pool capped at 5 connections. Paid-tier has its own pool of 20. The cap was set at launch and never revisited as free-tier traffic grew.'},
-  {match:['how fix','fix this'],    reply:'Two steps: (1) Increase <code>db.pool.free.max</code> to 20. (2) In <code>getBalance()</code>, throw an explicit <code>DBTimeoutException</code> instead of returning null on timeout.'},
-  {match:['which user','how many'], reply:'89% of the 847 failures were <code>user.tier=\'free\'</code>. Zero paid-tier users were affected at any point.'},
-  {match:['redeploy','restart'],    reply:'No redeploy needed. Hyperprobe sets breakpoints directly on the running JVM — zero downtime, zero pipeline involvement.'},
-];
-
-function followupReply(q) {
-  const lower=q.toLowerCase();
-  const m=FOLLOWUPS.find(f=>f.match.some(k=>lower.includes(k)));
-  return m ? m.reply : `Based on both snapshots the runtime state is clear — free-tier DB pool exhaustion, paid-tier completely unaffected. What else do you want to dig into?`;
-}
-
-function diagnosisHTML() {
-  return `Both snapshots captured. Here's what the runtime state shows:
-
-<div class="snap-summary">
-  <div class="snap-summary-hdr"><span class="snap-summary-title">⬤ Snapshot #1 · line 31</span><span class="snap-summary-sub">23:04:19.389</span></div>
-  <div class="snap-summary-rows">
-    <span class="snap-sec">DB State</span>
-    <div class="snap-row hl"><span class="sr-k">db.pool.active</span><span class="sr-e">=</span><span class="sr-warn">5 / 5 in use</span><span class="sr-note">← exhausted</span></div>
-    <div class="snap-row hl"><span class="sr-k">conn</span><span class="sr-e">=</span><span class="sr-bad">null</span><span class="sr-note">← timed out 3,000ms</span></div>
-  </div>
-</div>
-
-<div class="snap-summary">
-  <div class="snap-summary-hdr"><span class="snap-summary-title">⬤ Snapshot #2 · line 34</span><span class="snap-summary-sub">23:04:19.441</span></div>
-  <div class="snap-summary-rows">
-    <span class="snap-sec">Local Variables</span>
-    <div class="snap-row hl"><span class="sr-k">balance</span><span class="sr-e">=</span><span class="sr-bad">null</span><span class="sr-note">← DB returned null</span></div>
-    <span class="snap-sec">User Context</span>
-    <div class="snap-row hl"><span class="sr-k">user.tier</span><span class="sr-e">=</span><span class="sr-info">"free"</span><span class="sr-note">← 89% of failures</span></div>
-  </div>
-</div>
-
-<div class="rca-block">
-  <div class="rca-block-hdr">Root Cause · INC-20240312-0047 · MTTR 9 min</div>
-  <div class="rca-row"><span class="rca-lbl lbl-cause">CAUSE</span><span class="rca-val">Free-tier HikariCP pool saturated (5/5, 12 queued). <code>getConnection()</code> → <code>null</code> → <code>getBalance()</code> → <code>null</code> → wrong <code>InsufficientFunds</code>. 89% of 847 failures = free-tier.</span></div>
-  <div class="rca-row"><span class="rca-lbl lbl-scope">SCOPE</span><span class="rca-val">Free-tier only. Paid-tier pool (20 slots) completely unaffected.</span></div>
-  <div class="rca-row"><span class="rca-lbl lbl-fix">FIX</span><span class="rca-val">Increase free-tier pool 5→20. Raise explicit <code>DBTimeoutException</code> on timeout. Add circuit breaker at &gt;80% pool usage.</span></div>
-</div>
-
-Any questions?`;
-}
-
-// ════════════════════════════════════
-// NAV
-// ════════════════════════════════════
-function renderNav() {
-  const snaps = allSnapKeys().length;
-  const bps   = (aiOpen&&aiStep>=3?2:0)+manualBPs.length;
-
-  let label='', dotCount=1, activeDot=0, btns='';
-
-  if (aiOpen) {
-    const labels=[
-      'AI chat open — describe the incident. Press Enter or click Next.',
-      'AI is analysing the codebase…',
-      'AI proposed 2 breakpoints. Click "Approve & Activate" in the chat.',
-      'Breakpoints live on lines 31 & 34. Waiting… (auto)',
-      'Snapshot 1 fired on line 31. Waiting for line 34… (auto)',
-      'Both snapshots captured. Click between them in the feed.',
-      'AI diagnosis posted. Ask any follow-up questions.',
-    ];
-    label = labels[aiStep]||'';
-    dotCount=7; activeDot=aiStep;
-    if (aiStep===0) btns=`<button class="demo-btn primary" onclick="demoSend()">Next: Send message →</button>`;
-    else btns=`<button class="demo-btn ghost" onclick="restart()">↺ Restart</button>`;
-  } else {
-    if (bps===0&&snaps===0) label='Right-click line 31 or 34 to add a breakpoint manually — or click "Use AI to debug this" in the sidebar.';
-    else if (snaps===0)     label=`${bps} breakpoint${bps>1?'s':''} active. Waiting for snapshot${bps>1?'s':''}…`;
-    else                    label=`${snaps} snapshot${snaps>1?'s':''} captured. Click between them in the panel below.`;
-    dotCount=3; activeDot=bps===0?0:snaps===0?1:2;
-    btns=`<button class="demo-btn ghost" onclick="restart()">↺ Restart</button>`;
-  }
-
-  document.getElementById('stepLabel').textContent=label;
-  document.getElementById('demoDots').innerHTML=Array.from({length:dotCount},(_,i)=>
-    `<div class="demo-dot ${i===activeDot?'active':''}"></div>`).join('');
-  document.getElementById('demoBtns').innerHTML=btns;
-}
-
-function demoSend() {
-  const inp=document.getElementById('chatInput');
-  inp.value='Payment failures on prod. 847 errors in the last 10 min. Balance check seems to hang — users hitting InsufficientFunds but they have money.';
-  autoResize(inp); handleSend();
-}
-
-function restart() {
-  aiOpen=false; aiStep=0; aiInputLocked=false;
-  chatMsgList.length=0;
-  manualBPs=[]; manualSnaps=[]; selectedSnap=0; ctxTarget=null;
-  document.getElementById('sidebarIdle').style.display='flex';
-  document.getElementById('aiChat').classList.remove('open');
-  const inp=document.getElementById('chatInput');
-  if(inp){inp.value='';inp.style.height='auto';inp.placeholder='Describe the incident…';inp.disabled=false;}
-  const btn=document.getElementById('sendBtn'); if(btn)btn.disabled=false;
-  renderBPSidebar();
-  renderAll();
-}
-
-function toggleSection(hdr) {
-  const body=hdr.nextElementSibling, arrow=hdr.querySelector('.dbg-arrow');
-  const open=body.style.display!=='none';
-  body.style.display=open?'none':'block';
-  arrow.textContent=open?'▶':'▾';
-  hdr.classList.toggle('open',!open);
-}
-
-function renderAll() { renderCode(); renderPanel(); renderStatus(); renderNav(); }
-renderAll();
+// ════════════════════════
+// INIT
+// ════════════════════════
+renderCode(); renderPanel(); renderStatus();
 </script>
 </body>
 </html>
