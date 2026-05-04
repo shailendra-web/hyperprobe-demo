@@ -180,6 +180,76 @@ html,body{height:100%;background:#1e1e1e;font-family:'JetBrains Mono',monospace;
 /* NAV */
 .nb{background:#2d2d30;border:1px solid #454545;color:#d4d4d4;padding:5px 11px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border-radius:2px;}
 .nb:hover{background:#3c3c3c;}
+
+/* TIMER */
+.tic-marker{width:13px;height:13px;border-radius:2px;background:#0e7490;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:700;}
+.toc-marker{width:13px;height:13px;border-radius:2px;background:#0e7490;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:700;}
+.cl.ticl{background:rgba(14,116,144,0.1);}
+.cl.tocl{background:rgba(14,116,144,0.1);}
+.cl.ticl::after,.cl.tocl::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#0e7490;}
+.log-level-timer{color:#4ec9b0;font-weight:700;font-size:10px;min-width:42px;}
+.log-msg .lspike{color:#f48771;font-weight:700;}
+.log-msg .lfast{color:#6ee7b7;}
+
+/* TIMER FORM */
+.tf{background:#252526;border:1px solid #454545;width:400px;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.6);overflow:hidden;}
+.tf-hdr{padding:12px 16px;background:#2d2d30;border-bottom:1px solid #3c3c3c;display:flex;align-items:center;justify-content:space-between;}
+.tf-title{font-size:13px;color:#d4d4d4;font-weight:600;display:flex;align-items:center;gap:8px;}
+.tf-x{color:#858585;cursor:pointer;font-size:16px;}
+.tf-body{padding:16px;display:flex;flex-direction:column;gap:14px;}
+.tf-row{display:flex;flex-direction:column;gap:5px;}
+.tf-lbl{font-size:11px;color:#858585;letter-spacing:0.8px;text-transform:uppercase;}
+.tf-in{background:#3c3c3c;border:1px solid #555;color:#d4d4d4;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:2px;outline:none;width:100%;}
+.tf-in:focus{border-color:#4ec9b0;}
+.tf-info{display:flex;gap:10px;}
+.tf-info-item{flex:1;background:#1e1e1e;border:1px solid #2d2d2d;padding:8px 10px;border-radius:2px;}
+.tf-info-label{font-size:9.5px;color:#555;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
+.tf-info-val{font-size:11.5px;color:#4ec9b0;font-weight:600;}
+.tf-hint{font-size:10px;color:#6a9955;font-style:italic;}
+.tf-ftr{padding:12px 16px;background:#2d2d30;border-top:1px solid #3c3c3c;display:flex;gap:8px;justify-content:flex-end;}
+.tf-btn{padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;border:none;cursor:pointer;border-radius:2px;font-weight:600;}
+.tf-pri{background:#0e7490;color:white;}.tf-pri:hover{background:#0c6578;}
+.tf-sec{background:#3c3c3c;color:#d4d4d4;border:1px solid #555;}
+
+/* TIMER STREAM BANNER */
+.timer-banner{padding:7px 14px;background:rgba(14,116,144,0.1);border-bottom:1px solid rgba(14,116,144,0.2);font-size:10.5px;color:#4ec9b0;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.timer-banner-dot{width:6px;height:6px;border-radius:50%;background:#4ec9b0;animation:blink 1s ease-in-out infinite;flex-shrink:0;}
+
+.log-stream{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.log-stream::-webkit-scrollbar{width:3px;}
+.log-stream::-webkit-scrollbar-thumb{background:#3c3c3c;}
+.log-entry{display:flex;align-items:baseline;gap:10px;padding:3px 14px;font-size:11.5px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(255,255,255,0.03);}
+.log-entry:hover{background:rgba(255,255,255,0.03);}
+.log-time{color:#555;flex-shrink:0;font-size:10.5px;}
+.log-msg{color:#d4d4d4;flex:1;}
+
+.lf{background:#252526;border:1px solid #454545;width:480px;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.6);overflow:hidden;}
+.lf-hdr{padding:12px 16px;background:#2d2d30;border-bottom:1px solid #3c3c3c;display:flex;align-items:center;justify-content:space-between;}
+.lf-title{font-size:13px;color:#d4d4d4;font-weight:600;display:flex;align-items:center;gap:8px;}
+.lf-x{color:#858585;cursor:pointer;font-size:16px;}
+.lf-body{padding:16px;display:flex;flex-direction:column;gap:14px;}
+.lf-row{display:flex;flex-direction:column;gap:5px;}
+.lf-lbl{font-size:11px;color:#858585;letter-spacing:0.8px;text-transform:uppercase;}
+.lf-ta{background:#3c3c3c;border:1px solid #555;color:#d4d4d4;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:2px;outline:none;width:100%;resize:none;line-height:1.6;}
+.lf-ta:focus{border-color:#569cd6;}
+.lf-hint{font-size:10px;color:#6a9955;font-style:italic;}
+.lf-levels{display:flex;gap:8px;}
+.lf-level{padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid #555;background:#3c3c3c;color:#858585;cursor:pointer;border-radius:2px;}
+.lf-level.on-info{background:rgba(86,156,214,0.15);border-color:#569cd6;color:#9cdcfe;}
+.lf-level.on-warn{background:rgba(215,153,33,0.15);border-color:#d97706;color:#fcd34d;}
+.lf-level.on-error{background:rgba(192,57,43,0.15);border-color:#c0392b;color:#f48771;}
+.lf-ftr{padding:12px 16px;background:#2d2d30;border-top:1px solid #3c3c3c;display:flex;gap:8px;justify-content:flex-end;}
+.lf-btn{padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;border:none;cursor:pointer;border-radius:2px;font-weight:600;}
+.lf-pri{background:#c0392b;color:white;}.lf-pri:hover{background:#a93226;}
+.lf-sec{background:#3c3c3c;color:#d4d4d4;border:1px solid #555;}
+.log-banner{padding:7px 14px;background:rgba(192,57,43,0.1);border-bottom:1px solid rgba(192,57,43,0.2);font-size:10.5px;color:#c0392b;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.log-banner-dot{width:6px;height:6px;border-radius:50%;background:#c0392b;animation:blink 1s ease-in-out infinite;flex-shrink:0;}
+.log-level-info{color:#569cd6;font-weight:700;font-size:10px;min-width:36px;}
+.log-level-warn{color:#d97706;font-weight:700;font-size:10px;min-width:36px;}
+.log-level-error{color:#f48771;font-weight:700;font-size:10px;min-width:36px;}
+.log-msg .lv{color:#4ec9b0;}
+.log-msg .lbad{color:#f48771;font-weight:700;}
+.log-msg .lwarn{color:#d97706;font-weight:700;}
 </style>
 </head>
 <body>
@@ -190,7 +260,10 @@ html,body{height:100%;background:#1e1e1e;font-family:'JetBrains Mono',monospace;
   <div class="ctx-it">⎘ Copy<span class="ctx-sh">⌘C</span></div>
   <div class="ctx-it sep">🔍 Go to Definition<span class="ctx-sh">F12</span></div>
   <div class="ctx-it sep" id="ctxHP"><span class="ctx-hp">⬤</span><span class="ctx-hp"> Add Hyperprobe Breakpoint…</span></div>
-  <div class="ctx-it">🔖 Add Breakpoint<span class="ctx-sh">F9</span></div>
+  <div class="ctx-it" id="ctxLog"><span style="color:#c0392b;font-weight:700">≡</span><span style="color:#c0392b;font-weight:700"> Add Hyperprobe Log…</span></div>
+  <div class="ctx-it" id="ctxTIC"><span style="color:#4ec9b0;font-weight:700">⏱</span><span style="color:#4ec9b0;font-weight:700"> Set as TIC (Timer Start)</span></div>
+  <div class="ctx-it" id="ctxTOC"><span style="color:#4ec9b0;font-weight:700">⏱</span><span style="color:#4ec9b0;font-weight:700"> Set as TOC (Timer End)</span></div>
+  <div class="ctx-it sep">🔖 Add Breakpoint<span class="ctx-sh">F9</span></div>
 </div>
 
 <!-- BP FORM -->
@@ -219,6 +292,71 @@ html,body{height:100%;background:#1e1e1e;font-family:'JetBrains Mono',monospace;
     <div class="bpf-ftr">
       <button class="bpf-btn bpf-sec" id="bpfCancel">Cancel</button>
       <button class="bpf-btn bpf-pri" id="bpfActivate">Activate Breakpoint</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- LOG FORM -->
+<div class="ov" id="logOv">
+  <div class="lf">
+    <div class="lf-hdr">
+      <div class="lf-title"><span style="color:#c0392b">≡</span> Add Hyperprobe Log — <span id="logLineLabel">line 15</span></div>
+      <span class="lf-x" id="lfX">✕</span>
+    </div>
+    <div class="lf-body">
+      <div class="lf-row">
+        <div class="lf-lbl">Log Message Template</div>
+        <textarea class="lf-ta" id="lfMsg" rows="3">"pricing: rule={rule.name}, promoCode={rule.promoCode}, eligibilityCheck={rule.eligibilityCheck}, customerTier={item.customerTier}, price={price}"</textarea>
+        <div class="lf-hint">Use {variableName} to interpolate values captured at this line.</div>
+      </div>
+      <div class="lf-row">
+        <div class="lf-lbl">Log Level</div>
+        <div class="lf-levels">
+          <div class="lf-level" id="lvlInfo" onclick="setLogLevel('INFO')">INFO</div>
+          <div class="lf-level on-warn" id="lvlWarn" onclick="setLogLevel('WARN')">WARN</div>
+          <div class="lf-level" id="lvlError" onclick="setLogLevel('ERROR')">ERROR</div>
+        </div>
+      </div>
+    </div>
+    <div class="lf-ftr">
+      <button class="lf-btn lf-sec" id="lfCancel">Cancel</button>
+      <button class="lf-btn lf-pri" id="lfActivate">Activate Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIMER CONFIRM FORM — shown after both TIC and TOC are set -->
+<div class="ov" id="timerOv">
+  <div class="tf">
+    <div class="tf-hdr">
+      <div class="tf-title"><span style="color:#4ec9b0">⏱</span> Activate Hyperprobe Timer</div>
+      <span class="tf-x" id="tfX">✕</span>
+    </div>
+    <div class="tf-body">
+      <div class="tf-row">
+        <div class="tf-lbl">Timer Name</div>
+        <input class="tf-in" id="tfName" value="process() elapsed time">
+        <div class="tf-hint">Elapsed time is logged every time execution passes both markers.</div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-lbl">Markers</div>
+        <div class="tf-info">
+          <div class="tf-info-item">
+            <div class="tf-info-label">⏱ TIC — Start</div>
+            <div class="tf-info-val" id="ticLabel">Line 8</div>
+          </div>
+          <div class="tf-info-item">
+            <div class="tf-info-label">⏱ TOC — End</div>
+            <div class="tf-info-val" id="tocLabel">Line 19</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tf-ftr">
+      <button class="tf-btn tf-sec" id="tfCancel">Cancel</button>
+      <button class="tf-btn tf-pri" id="tfActivate">Activate Timer</button>
     </div>
   </div>
 </div>
@@ -309,9 +447,31 @@ html,body{height:100%;background:#1e1e1e;font-family:'JetBrains Mono',monospace;
           <div class="ptabs">
             <div class="ptab">Terminal</div>
             <div class="ptab">Problems</div>
-            <div class="ptab on">⬤ Hyperprobe <span class="ptab-n" id="snapN">0</span></div>
+            <div class="ptab on" id="tabSnap" onclick="switchTab('snap')">⬤ Hyperprobe <span class="ptab-n" id="snapN">0</span></div>
+            <div class="ptab" id="tabDynLog" onclick="switchTab('dynlog')">≡ Logs <span class="ptab-n" id="logsN" style="display:none">●</span></div>
+            <div class="ptab" id="tabLogs" onclick="switchTab('logs')">⏱ Timer <span class="ptab-n" id="timerN" style="display:none">●</span></div>
           </div>
-          <div class="pc" id="pc"></div>
+          <div id="pcWrap" style="flex:1;display:flex;overflow:hidden;">
+            <div class="pc" id="pc" style="flex:1;display:flex;overflow:hidden;"></div>
+            <div id="dynLogPane" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+              <div class="log-banner" id="logBanner" style="display:none;">
+                <span class="log-banner-dot"></span>
+                <span>Dynamic log active on line <span id="logBannerLine">15</span> · firing on every request · no redeploy</span>
+              </div>
+              <div class="log-stream" id="dynLogStream">
+                <div id="dynLogEmpty" style="padding:24px;text-align:center;color:#555;font-size:11px;line-height:1.9;">No logs yet.<br><br>Right-click any line and select<br>"Add Hyperprobe Log…" to start streaming.</div>
+              </div>
+            </div>
+            <div id="logPane" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+              <div class="timer-banner" id="timerBanner" style="display:none;">
+                <span class="timer-banner-dot"></span>
+                <span>Timer active · <span id="timerBannerName">process() duration</span> · TIC line 8 → TOC line 19 · no redeploy</span>
+              </div>
+              <div class="log-stream" id="logStream">
+                <div class="log-empty" id="logEmpty" style="padding:24px;text-align:center;color:#555;font-size:11px;line-height:1.9;">No timer data yet.<br><br>Right-click line 8 or 19<br>and select "Add Hyperprobe Timer…"</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -343,7 +503,7 @@ var CODE = [
   {n:5,  c:''},
   {n:6,  c:'<span class="kw">public class</span> <span class="ty">FlashSalePricingProcessor</span> {'},
   {n:7,  c:''},
-  {n:8,  c:'    <span class="kw">public</span> <span class="ty">Double</span> <span class="fn">process</span>(<span class="ty">Map.Entry</span>&lt;<span class="ty">String</span>, <span class="ty">InventoryItem</span>&gt; entry) {'},
+  {n:8,  c:'    <span class="kw">public</span> <span class="ty">Double</span> <span class="fn">process</span>(<span class="ty">Map.Entry</span>&lt;<span class="ty">String</span>, <span class="ty">InventoryItem</span>&gt; entry) {', tic:true},
   {n:9,  c:'        <span class="ty">InventoryItem</span> item = entry.getValue();'},
   {n:10, c:''},
   {n:11, c:'        <span class="kw">double</span> price = item.getBasePrice();'},
@@ -354,7 +514,7 @@ var CODE = [
   {n:16, c:'            }'},
   {n:17, c:'        }'},
   {n:18, c:''},
-  {n:19, c:'        <span class="kw">return</span> price;'},
+  {n:19, c:'        <span class="kw">return</span> price;', toc:true},
   {n:20, c:'    }'},
   {n:21, c:''},
   {n:22, c:'}'},
@@ -491,7 +651,12 @@ function renderCode(){
     return;
   }
   el.innerHTML=CODE.map(function(L){
-    if(!L.bp)return '<div class="cl" oncontextmenu="showCtx(event,'+L.n+')"><span class="gutter"></span><span class="ln">'+L.n+'</span><span class="lc">'+L.c+'</span></div>';
+    if(!L.bp){
+      var ticTocCls='', ticTocG='<span class="gutter"></span>';
+      if(timerActive&&L.n===ticLine){ticTocCls=' ticl';ticTocG='<span class="gutter"><span class="tic-marker">T1</span></span>';}
+      if(timerActive&&tocLine&&L.n===tocLine){ticTocCls=' tocl';ticTocG='<span class="gutter"><span class="toc-marker">T2</span></span>';}
+      return '<div class="cl'+ticTocCls+'" oncontextmenu="showCtx(event,'+L.n+')">'+ticTocG+'<span class="ln">'+L.n+'</span><span class="lc">'+L.c+'</span></div>';
+    }
     var bpActive=document.getElementById('bpSec').style.display!=='none';
     var cls='cl'+(bpActive?' bpl':'');
     var g='<span class="gutter"></span>';
@@ -601,6 +766,7 @@ function renderStatus(){
 // ════════════════════════
 function showCtx(e,n){
   e.preventDefault();
+  ctxLine=n;
   var m=document.getElementById('ctx');
   m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px';
   m.classList.add('show');
@@ -613,6 +779,9 @@ document.addEventListener('click',function(e){
   var m=document.getElementById('ctx');
   if(m.classList.contains('show')){
     if(e.target.closest('#ctxHP')){m.classList.remove('show');document.getElementById('ov').classList.add('show');return;}
+    if(e.target.closest('#ctxLog')){m.classList.remove('show');logLineNum=ctxLine;document.getElementById('logLineLabel').textContent='line '+ctxLine;document.getElementById('logOv').classList.add('show');return;}
+    if(e.target.closest('#ctxTIC')){m.classList.remove('show');ticLine=ctxLine;updateTimerForm();renderCode();showTicTocStatus();return;}
+    if(e.target.closest('#ctxTOC')){m.classList.remove('show');tocLine=ctxLine;updateTimerForm();renderCode();if(ticLine!==null){document.getElementById('timerOv').classList.add('show');}return;}
     m.classList.remove('show');
   }
 });
@@ -660,7 +829,21 @@ document.getElementById('bpfActivate').onclick=function(){
 // RESTART
 // ════════════════════════
 function restart(){
-  snapped=false; activeFrame=0;
+  snapped=false; activeFrame=0; selectedSnap=0; snapCount=0;
+  timerActive=false;
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=null;
+  var ls=document.getElementById('logStream');if(ls)ls.querySelectorAll('.log-entry').forEach(function(e){e.remove();});
+  var le=document.getElementById('logEmpty');if(le)le.style.display='block';
+  logActive=false;
+  if(logInterval)clearInterval(logInterval); logInterval=null;
+  var dls=document.getElementById('dynLogStream');if(dls)dls.querySelectorAll('.log-entry').forEach(function(e){e.remove();});
+  var dle=document.getElementById('dynLogEmpty');if(dle)dle.style.display='block';
+  var lb=document.getElementById('logBanner');if(lb)lb.style.display='none';
+  var ln=document.getElementById('logsN');if(ln)ln.style.display='none';
+  var tb=document.getElementById('timerBanner');if(tb)tb.style.display='none';
+  var tn=document.getElementById('timerN');if(tn)tn.style.display='none';
+  switchTab('snap');
   document.getElementById('bpSec').style.display='none';
   document.getElementById('bpList').innerHTML='';
   document.getElementById('bpN').textContent='0';
@@ -679,6 +862,186 @@ function restart(){
 // INIT
 // ════════════════════════
 renderCode(); renderPanel(); renderStatus();
+
+// ════════════════════════
+// TIMER FEATURE
+// ════════════════════════
+var timerActive = false;
+var ticLine = 8;
+var tocLine = 19;
+var ctxLine = null;
+var timerInterval = null;
+
+var TIMER_ENTRIES = [
+  {t:'14:32:08.109', ms:42,   ord:'ord_99811', spike:false},
+  {t:'14:32:08.334', ms:38,   ord:'ord_99812', spike:false},
+  {t:'14:32:08.621', ms:44,   ord:'ord_99813', spike:false},
+  {t:'14:32:08.892', ms:847,  ord:'ord_99814', spike:true},
+  {t:'14:32:09.201', ms:41,   ord:'ord_99815', spike:false},
+  {t:'14:32:09.445', ms:39,   ord:'ord_99816', spike:false},
+  {t:'14:32:09.731', ms:923,  ord:'ord_99817', spike:true},
+  {t:'14:32:10.002', ms:43,   ord:'ord_99818', spike:false},
+];
+
+function switchTab(tab){
+  var snap=document.getElementById('pc');
+  var dynLog=document.getElementById('dynLogPane');
+  var timer=document.getElementById('logPane');
+  var tabSnap=document.getElementById('tabSnap');
+  var tabDynLog=document.getElementById('tabDynLog');
+  var tabTimer=document.getElementById('tabLogs');
+  // hide all
+  snap.style.display='none'; dynLog.style.display='none'; timer.style.display='none';
+  tabSnap.classList.remove('on'); tabDynLog.classList.remove('on'); tabTimer.classList.remove('on');
+  if(tab==='snap'){snap.style.display='flex';tabSnap.classList.add('on');}
+  else if(tab==='dynlog'){dynLog.style.display='flex';dynLog.style.flexDirection='column';tabDynLog.classList.add('on');}
+  else if(tab==='logs'){timer.style.display='flex';timer.style.flexDirection='column';tabTimer.classList.add('on');}
+}
+
+function startTimerStream(){
+  timerActive=true;
+  document.getElementById('logEmpty').style.display='none';
+  document.getElementById('timerBanner').style.display='flex';
+  document.getElementById('timerBannerName').textContent=(document.getElementById('tfName').value||'process() elapsed time')+' · TIC:'+ticLine+' → TOC:'+(tocLine||'?');
+  document.getElementById('timerN').style.display='inline';
+  switchTab('logs');
+  var i=0;
+  var stream=document.getElementById('logStream');
+  timerInterval=setInterval(function(){
+    if(i>=TIMER_ENTRIES.length){clearInterval(timerInterval);return;}
+    var e=TIMER_ENTRIES[i];
+    var el=document.createElement('div');
+    el.className='log-entry';
+    var msLabel=e.spike
+      ?'<span class="lspike">'+e.ms+'ms ← spike</span>'
+      :'<span class="lfast">'+e.ms+'ms</span>';
+    el.innerHTML='<span class="log-time">'+e.t+'</span>'
+      +'<span class="log-level-timer">TIMER</span>'
+      +'<span class="log-msg">process() → '+msLabel+' &nbsp;<span style="color:#555">'+e.ord+'</span></span>';
+    stream.appendChild(el);
+    stream.scrollTop=stream.scrollHeight;
+    i++;
+  },900);
+}
+
+// Wire timer context menu
+// ctxTimer handled in main click listener
+
+// Wire timer form
+document.getElementById('tfX').onclick=function(){document.getElementById('timerOv').classList.remove('show');};
+document.getElementById('tfCancel').onclick=function(){document.getElementById('timerOv').classList.remove('show');};
+document.getElementById('tfActivate').onclick=function(){
+  document.getElementById('timerOv').classList.remove('show');
+  startTimerStream();
+};
+
+// Update renderCode to show tic/toc markers on lines 8 and 19
+
+
+// ════════════════════════
+// DYNAMIC LOG FEATURE
+// ════════════════════════
+var logLevel = 'WARN';
+var logActive = false;
+var logInterval = null;
+var logLineNum = 15;
+
+// Raw data per firing — all possible fields
+// startLogStream reads the template and only includes fields present in it
+var RAW_LOG_DATA = [
+  {t:'14:32:07.109', l:'WARN',  vals:{'rule.name':'FLASH_SALE_10',      'rule.promoCode':'null',   'rule.eligibilityCheck':'CATEGORY=="OUTERWEAR"',  'item.customerTier':'SILVER', 'price':'340.00', bad:[]}},
+  {t:'14:32:07.441', l:'WARN',  vals:{'rule.name':'PROMO_CODE_DISCOUNT', 'rule.promoCode':'SALE20', 'rule.eligibilityCheck':'CUSTOMER_TIER=="GOLD"',  'item.customerTier':'SILVER', 'price':'306.00', bad:['rule.eligibilityCheck','item.customerTier']}},
+  {t:'14:32:07.892', l:'WARN',  vals:{'rule.name':'LOYALTY_DISCOUNT',    'rule.promoCode':'null',   'rule.eligibilityCheck':'LOYALTY_POINTS>=500',    'item.customerTier':'SILVER', 'price':'306.00', bad:['rule.eligibilityCheck']}},
+  {t:'14:32:08.210', l:'WARN',  vals:{'rule.name':'PROMO_CODE_DISCOUNT', 'rule.promoCode':'SALE20', 'rule.eligibilityCheck':'CUSTOMER_TIER=="GOLD"',  'item.customerTier':'SILVER', 'price':'268.00', bad:['rule.eligibilityCheck','item.customerTier']}},
+  {t:'14:32:08.541', l:'WARN',  vals:{'rule.name':'FLASH_SALE_10',      'rule.promoCode':'null',   'rule.eligibilityCheck':'CATEGORY=="OUTERWEAR"',  'item.customerTier':'GOLD',   'price':'340.00', bad:[]}},
+  {t:'14:32:08.891', l:'WARN',  vals:{'rule.name':'PROMO_CODE_DISCOUNT', 'rule.promoCode':'SALE20', 'rule.eligibilityCheck':'CUSTOMER_TIER=="GOLD"',  'item.customerTier':'GOLD',   'price':'306.00', bad:[]}},
+];
+
+// Build log entries from template at activation time
+function buildLogEntries(template){
+  // Extract {varName} tokens from template
+  var tokens = [];
+  var re = /\{([^}]+)\}/g, m;
+  while((m=re.exec(template))!==null) tokens.push(m[1]);
+
+  return RAW_LOG_DATA.map(function(row){
+    // Build message by replacing only the tokens present in the template
+    var msg = template;
+    tokens.forEach(function(tok){
+      var val = row.vals[tok] !== undefined ? row.vals[tok] : '?';
+      var isBad = Array.isArray(row.vals.bad) && row.vals.bad.indexOf(tok) !== -1;
+      var cls = isBad ? 'lbad' : 'lv';
+      msg = msg.replace('{'+tok+'}', '<span class="'+cls+'">'+val+'</span>');
+    });
+    return {t:row.t, l:row.l, msg:'"'+msg+'"'};
+  });
+}
+
+function setLogLevel(l){
+  logLevel=l;
+  document.getElementById('lvlInfo').className='lf-level'+(l==='INFO'?' on-info':'');
+  document.getElementById('lvlWarn').className='lf-level'+(l==='WARN'?' on-warn':'');
+  document.getElementById('lvlError').className='lf-level'+(l==='ERROR'?' on-error':'');
+}
+
+function startLogStream(lineNum){
+  logActive=true; logLineNum=lineNum;
+  document.getElementById('dynLogEmpty').style.display='none';
+  document.getElementById('logBanner').style.display='flex';
+  document.getElementById('logBannerLine').textContent=lineNum;
+  document.getElementById('logsN').style.display='inline';
+  switchTab('dynlog');
+  // Build entries from whatever is in the template right now
+  var template = document.getElementById('lfMsg').value.trim();
+  var LOG_ENTRIES = buildLogEntries(template);
+  var i=0;
+  var stream=document.getElementById('dynLogStream');
+  logInterval=setInterval(function(){
+    if(i>=LOG_ENTRIES.length){clearInterval(logInterval);return;}
+    var e=LOG_ENTRIES[i];
+    var lvlCls=e.l==='ERROR'?'log-level-error':e.l==='WARN'?'log-level-warn':'log-level-info';
+    var el=document.createElement('div');
+    el.className='log-entry';
+    el.innerHTML='<span class="log-time">'+e.t+'</span><span class="'+lvlCls+'">'+e.l+'</span><span class="log-msg">'+e.msg+'</span>';
+    stream.appendChild(el);
+    stream.scrollTop=stream.scrollHeight;
+    i++;
+  },1200);
+}
+
+// Wire log form
+document.getElementById('lfX').onclick=function(){document.getElementById('logOv').classList.remove('show');};
+document.getElementById('lfCancel').onclick=function(){document.getElementById('logOv').classList.remove('show');};
+document.getElementById('lfActivate').onclick=function(){
+  document.getElementById('logOv').classList.remove('show');
+  startLogStream(logLineNum);
+};
+
+
+
+function updateTimerForm(){
+  var tl=document.getElementById('ticLabel');
+  var tocl=document.getElementById('tocLabel');
+  if(tl&&ticLine!==null) tl.textContent='Line '+ticLine;
+  if(tocl&&tocLine!==null) tocl.textContent='Line '+tocLine;
+}
+
+function setTOC(lineNum){
+  tocLine=lineNum;
+  updateTimerForm();
+  // Also update context menu to show TOC option when timer form is open
+}
+
+
+function showTicTocStatus(){
+  var t=document.getElementById('toast');
+  document.querySelector('.toast-t').textContent='⏱ Hyperprobe Timer';
+  document.querySelector('.toast-b').textContent='TIC set on line '+ticLine+'. Now right-click the end line and select "Set as TOC".';
+  document.querySelector('.toast-s').textContent='TOC not yet set — timer will activate once both markers are placed.';
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3500);
+}
+
 </script>
 </body>
 </html>
